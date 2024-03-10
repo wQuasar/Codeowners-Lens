@@ -1,0 +1,17 @@
+[versions]
+kotlin = "1.9.21"
+intellij = "1.16.1"
+sinceBuild = "231"
+untilBuild = "241.*"
+jvmVersion = "17"
+intellijPlugin = "2023.1.5"
+dagger = "2.40.5"
+
+[libraries]
+dagger = { group = "com.google.dagger", name = "dagger", version = "2.40.5" }
+daggerKapt = { group = "com.google.dagger", name = "dagger-compiler", version = "2.40.5" }
+
+[plugins]
+jetBrainsKotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+jetBrainsIntellij = { id = "org.jetbrains.intellij", version.ref = "intellij" }
+kotlinKapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
