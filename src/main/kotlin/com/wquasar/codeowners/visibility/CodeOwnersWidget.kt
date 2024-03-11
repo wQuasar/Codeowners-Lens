@@ -14,8 +14,12 @@ import com.intellij.refactoring.listeners.RefactoringEventData
 import com.intellij.refactoring.listeners.RefactoringEventListener
 import com.intellij.util.messages.MessageBusConnection
 import com.wquasar.codeowners.visibility.utils.Utilities
+import javax.inject.Inject
 
-internal class CodeOwnersWidget(currentProject: Project) : EditorBasedWidget(currentProject), StatusBarWidget.MultipleTextValuesPresentation,
+internal class CodeOwnersWidget @Inject constructor(
+    currentProject: Project,
+    private val codeOwners: CodeOwners,
+) : EditorBasedWidget(currentProject), StatusBarWidget.MultipleTextValuesPresentation,
     RefactoringEventListener, FileEditorManagerListener {
 
     companion object {
@@ -41,8 +45,6 @@ internal class CodeOwnersWidget(currentProject: Project) : EditorBasedWidget(cur
     private var currentOrSelectedFile: VirtualFile? = null
     private var currentFilePath: String? = null
     private var currentFileRule: CodeOwnerRule? = null
-
-    private val codeOwners = CodeOwners(currentProject)
 
     override fun ID() = ID
 

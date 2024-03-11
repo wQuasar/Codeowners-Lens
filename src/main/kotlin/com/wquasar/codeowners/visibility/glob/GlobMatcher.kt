@@ -1,8 +1,9 @@
 package com.wquasar.codeowners.visibility.glob
 
 import java.util.*
+import javax.inject.Inject
 
-internal class GlobMatcher {
+internal class GlobMatcher @Inject constructor() {
     fun matches(glob: Glob, absolutePath: String): Boolean =
         matchSegments(glob.segments, absolutePath.split('/')) != glob.codeOwnerRule.pattern.startsWith("!")
 

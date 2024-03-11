@@ -5,10 +5,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.wquasar.codeowners.visibility.glob.Glob
 import com.wquasar.codeowners.visibility.glob.GlobMatcher
 import com.wquasar.codeowners.visibility.utils.Utilities
+import javax.inject.Inject
 
-internal class CodeOwners(private val project: Project) {
-
-    private val globMatcher = GlobMatcher()
+internal class CodeOwners @Inject constructor(
+    private val project: Project,
+    private val globMatcher: GlobMatcher,
+) {
 
     private val codeOwnerRulesGlobs: LinkedHashSet<Glob> = linkedSetOf()
 
@@ -38,7 +40,7 @@ internal class CodeOwners(private val project: Project) {
     private fun matchCodeOwnerRuleForFile(
         file: VirtualFile
     ) = codeOwnerRulesGlobs.findLast {
-           globMatcher.matches(it, file.path)
+        globMatcher.matches(it, file.path)
     }
 
     private fun updateCodeOwnerRules(file: VirtualFile?) {
