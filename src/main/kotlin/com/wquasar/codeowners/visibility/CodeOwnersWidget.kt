@@ -15,14 +15,14 @@ import com.intellij.refactoring.listeners.RefactoringEventListener
 import com.intellij.util.messages.MessageBusConnection
 import com.wquasar.codeowners.visibility.utils.Utilities
 
-class CodeOwnersWidget(project: Project) : EditorBasedWidget(project), StatusBarWidget.MultipleTextValuesPresentation,
+internal class CodeOwnersWidget(currentProject: Project) : EditorBasedWidget(currentProject), StatusBarWidget.MultipleTextValuesPresentation,
     RefactoringEventListener, FileEditorManagerListener {
 
     companion object {
         const val ID = "com.wquasar.codeowners.visibility.CodeOwnersWidget"
     }
 
-    private val connection: MessageBusConnection = project.messageBus.connect(this)
+    private val connection: MessageBusConnection = currentProject.messageBus.connect(this)
 
     init {
         connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, this)
@@ -42,7 +42,7 @@ class CodeOwnersWidget(project: Project) : EditorBasedWidget(project), StatusBar
     private var currentFilePath: String? = null
     private var currentFileRule: CodeOwnerRule? = null
 
-    private val codeOwners = CodeOwners(project)
+    private val codeOwners = CodeOwners(currentProject)
 
     override fun ID() = ID
 
