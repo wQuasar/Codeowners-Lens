@@ -4,12 +4,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.wquasar.codeowners.visibility.glob.Glob
 import com.wquasar.codeowners.visibility.glob.GlobMatcher
-import com.wquasar.codeowners.visibility.utils.Utilities
+import com.wquasar.codeowners.visibility.utils.FileHelper
 import javax.inject.Inject
 
 internal class CodeOwners @Inject constructor(
     private val project: Project,
     private val globMatcher: GlobMatcher,
+    private val fileHelper: FileHelper,
 ) {
 
     private val codeOwnerRulesGlobs: LinkedHashSet<Glob> = linkedSetOf()
@@ -44,20 +45,19 @@ internal class CodeOwners @Inject constructor(
     }
 
     private fun updateCodeOwnerRules(file: VirtualFile?) {
-        val baseDirPath = Utilities.getBaseDir(project, file) ?: return
-        val codeOwnerFile = Utilities.findCodeOwnersFile(baseDirPath) ?: return
+        val baseDirPath = fileHelper.getBaseDir(project, file) ?: return
+        val codeOwnerFile = fileHelper.findCodeOwnersFile(baseDirPath) ?: return
 
-        val codeOwnerRules: LinkedHashSet<CodeOwnerRule> = linkedSetOf()
-        codeOwnerRules
-            .addAll(codeOwnerFile
-                .readLines()
-                .asSequence()
-                .mapIndexed { index, s -> Pair(index, s) }
-                .filter { it.second.isNotBlank() && !it.second.startsWith("#") }
-                .map { Pair(it.first, it.second.split("\\s+".toRegex())) }
-                .filter { it.second.size >= 2 }
-                .map { CodeOwnerRule.fromCodeOwnerLine(it.first, it.second) }
-                .toList())
+        val codeOwnerRules = codeOwnerFile
+            .readLines()
+            .asSequence()
+            .withIndex()
+            .filter { (_, line) -> line.isNotBlank() && !line.startsWith("#") }
+            .map { (index, line) ->
+                line.split("\\s+".toRegex()).takeIf { it.size >= 2 }?.let { CodeOwnerRule.fromCodeOwnerLine(index, it) }
+            }
+            .filterNotNull()
+            .toCollection(LinkedHashSet())
 
         for (rule in codeOwnerRules) {
             codeOwnerRulesGlobs.add(Glob(rule, baseDirPath))

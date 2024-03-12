@@ -9,8 +9,11 @@ import com.intellij.openapi.vfs.toNioPathOrNull
 import com.wquasar.codeowners.visibility.CodeOwners
 import java.io.File
 import java.nio.file.Path
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object Utilities {
+@Singleton
+internal class FileHelper @Inject constructor() {
 
     fun findCodeOwnersFile(baseDirPath: String): File? {
         val fs = LocalFileSystem.getInstance()
