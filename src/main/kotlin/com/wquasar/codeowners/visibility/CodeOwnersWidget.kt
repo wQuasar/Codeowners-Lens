@@ -44,8 +44,6 @@ internal class CodeOwnersWidget @Inject constructor(
     }
 
     private var currentOrSelectedFile: VirtualFile? = null
-    private var currentFilePath: String? = null
-    private var currentFileRule: CodeOwnerRule? = null
 
     override fun ID() = ID
 
@@ -68,11 +66,7 @@ internal class CodeOwnersWidget @Inject constructor(
 
     private fun getCurrentCodeOwnerRule(): CodeOwnerRule? {
         val file = currentOrSelectedFile ?: return null
-        if (file.path != currentFilePath) {
-            currentFilePath = file.path
-            currentFileRule = codeOwners.getCodeOwners(file)
-        }
-        return currentFileRule
+        return codeOwners.getCodeOwners(file)
     }
 
     private fun update(file: VirtualFile?) {
