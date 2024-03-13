@@ -13,13 +13,13 @@ import com.intellij.openapi.wm.impl.status.EditorBasedWidget
 import com.intellij.refactoring.listeners.RefactoringEventData
 import com.intellij.refactoring.listeners.RefactoringEventListener
 import com.intellij.util.messages.MessageBusConnection
-import com.wquasar.codeowners.visibility.utils.FileHelper
+import com.wquasar.codeowners.visibility.utils.FilesHelper
 import javax.inject.Inject
 
 internal class CodeOwnersWidget @Inject constructor(
     currentProject: Project,
     private val codeOwners: CodeOwners,
-    private val fileHelper: FileHelper,
+    private val filesHelper: FilesHelper,
 ) : EditorBasedWidget(currentProject), StatusBarWidget.MultipleTextValuesPresentation,
     RefactoringEventListener, FileEditorManagerListener {
 
@@ -34,7 +34,7 @@ internal class CodeOwnersWidget @Inject constructor(
         connection.subscribe(VirtualFileManager.VFS_CHANGES, object : BulkFileListener {
             override fun after(events: MutableList<out VFileEvent>) {
                 for (event in events) {
-                    if (fileHelper.isCodeOwnersFile(event.file)) {
+                    if (filesHelper.isCodeOwnersFile(event.file)) {
                         codeOwners.refreshCodeOwnerRules(event.file)
                         break
                     }

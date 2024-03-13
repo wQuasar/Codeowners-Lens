@@ -1,16 +1,14 @@
 package com.wquasar.codeowners.visibility
 
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.wquasar.codeowners.visibility.glob.Glob
 import com.wquasar.codeowners.visibility.glob.GlobMatcher
-import com.wquasar.codeowners.visibility.utils.FileHelper
+import com.wquasar.codeowners.visibility.utils.FilesHelper
 import javax.inject.Inject
 
 internal class CodeOwners @Inject constructor(
-    private val project: Project,
     private val globMatcher: GlobMatcher,
-    private val fileHelper: FileHelper,
+    private val filesHelper: FilesHelper,
 ) {
 
     private val codeOwnerRulesGlobs: LinkedHashSet<Glob> = linkedSetOf()
@@ -45,8 +43,8 @@ internal class CodeOwners @Inject constructor(
     }
 
     private fun updateCodeOwnerRules(file: VirtualFile?) {
-        val baseDirPath = fileHelper.getBaseDir(project, file) ?: return
-        val codeOwnerFile = fileHelper.findCodeOwnersFile(baseDirPath) ?: return
+        val baseDirPath = filesHelper.getBaseDir(file) ?: return
+        val codeOwnerFile = filesHelper.findCodeOwnersFile(baseDirPath) ?: return
 
         val codeOwnerRules = codeOwnerFile
             .readLines()

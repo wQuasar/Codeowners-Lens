@@ -1,7 +1,6 @@
 package com.wquasar.codeowners.visibility.utils
 
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessModuleDir
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
@@ -13,19 +12,22 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-internal class FileHelper @Inject constructor() {
+internal class FilesHelper @Inject constructor(
+    private val localFileSystem: LocalFileSystem,
+    private val moduleManager: ModuleManager,
+) {
 
     fun findCodeOwnersFile(baseDirPath: String): File? {
-        val fs = LocalFileSystem.getInstance()
-
         return CodeOwners.validCodeOwnersPaths.asSequence()
-            .mapNotNull { path -> fs.findFileByNioFile(Path.of(baseDirPath, path))?.toNioPathOrNull()?.toFile() }
+            .mapNotNull { path ->
+                localFileSystem.findFileByNioFile(Path.of(baseDirPath, path))?.toNioPathOrNull()?.toFile()
+            }
             .firstOrNull { it.isFile }
     }
 
-    fun getBaseDir(project: Project, relativeTo: VirtualFile?): String? {
+    fun getBaseDir(relativeTo: VirtualFile?): String? {
         val relPath = relativeTo?.toNioPathOrNull() ?: return null
-        return ModuleManager.getInstance(project).sortedModules
+        return moduleManager.sortedModules
             .mapNotNull { it.guessModuleDir()?.toNioPathOrNull() }
             .filter { relPath.startsWith(it) }
             .minBy { it.toList().size }
