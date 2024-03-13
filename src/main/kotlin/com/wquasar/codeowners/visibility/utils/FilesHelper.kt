@@ -1,11 +1,11 @@
 package com.wquasar.codeowners.visibility.utils
 
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.project.guessModuleDir
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.toNioPathOrNull
 import com.wquasar.codeowners.visibility.CodeOwners
+import com.wquasar.codeowners.visibility.file.ModuleDirProvider
 import java.io.File
 import java.nio.file.Path
 import javax.inject.Inject
@@ -15,6 +15,7 @@ import javax.inject.Singleton
 internal class FilesHelper @Inject constructor(
     private val localFileSystem: LocalFileSystem,
     private val moduleManager: ModuleManager,
+    private val moduleDirProvider: ModuleDirProvider,
 ) {
 
     fun findCodeOwnersFile(baseDirPath: String): File? {
@@ -28,7 +29,7 @@ internal class FilesHelper @Inject constructor(
     fun getBaseDir(relativeTo: VirtualFile?): String? {
         val relPath = relativeTo?.toNioPathOrNull() ?: return null
         return moduleManager.sortedModules
-            .mapNotNull { it.guessModuleDir()?.toNioPathOrNull() }
+            .mapNotNull { moduleDirProvider.guessModuleDir(it)?.toNioPathOrNull() }
             .filter { relPath.startsWith(it) }
             .minBy { it.toList().size }
             .toString()
