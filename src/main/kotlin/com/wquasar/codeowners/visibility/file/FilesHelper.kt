@@ -4,7 +4,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.toNioPathOrNull
-import com.wquasar.codeowners.visibility.core.CodeOwners
+import com.wquasar.codeowners.visibility.core.CodeOwnerService
 import java.io.File
 import java.nio.file.Path
 import javax.inject.Inject
@@ -18,7 +18,7 @@ internal class FilesHelper @Inject constructor(
 ) {
 
     fun findCodeOwnersFile(baseDirPath: String): File? {
-        return CodeOwners.validCodeOwnersPaths.asSequence()
+        return CodeOwnerService.validCodeOwnersPaths.asSequence()
             .mapNotNull { path ->
                 localFileSystem.findFileByNioFile(Path.of(baseDirPath, path))?.toNioPathOrNull()?.toFile()
             }
@@ -34,6 +34,6 @@ internal class FilesHelper @Inject constructor(
     }
 
     fun isCodeOwnersFile(file: VirtualFile?): Boolean {
-        return file != null && CodeOwners.validCodeOwnersPaths.any { file.path.contains(it) }
+        return file != null && CodeOwnerService.validCodeOwnersPaths.any { file.path.contains(it) }
     }
 }

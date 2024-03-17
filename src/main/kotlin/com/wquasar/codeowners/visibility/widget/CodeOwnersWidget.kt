@@ -14,13 +14,13 @@ import com.intellij.refactoring.listeners.RefactoringEventData
 import com.intellij.refactoring.listeners.RefactoringEventListener
 import com.intellij.util.messages.MessageBusConnection
 import com.wquasar.codeowners.visibility.core.CodeOwnerRule
-import com.wquasar.codeowners.visibility.core.CodeOwners
+import com.wquasar.codeowners.visibility.core.CodeOwnerService
 import com.wquasar.codeowners.visibility.file.FilesHelper
 import javax.inject.Inject
 
 internal class CodeOwnersWidget @Inject constructor(
     currentProject: Project,
-    private val codeOwners: CodeOwners,
+    private val codeOwnerService: CodeOwnerService,
     private val filesHelper: FilesHelper,
 ) : EditorBasedWidget(currentProject), StatusBarWidget.MultipleTextValuesPresentation,
     RefactoringEventListener, FileEditorManagerListener {
@@ -37,7 +37,7 @@ internal class CodeOwnersWidget @Inject constructor(
             override fun after(events: MutableList<out VFileEvent>) {
                 for (event in events) {
                     if (filesHelper.isCodeOwnersFile(event.file)) {
-                        codeOwners.refreshCodeOwnerRules(event.file)
+                        codeOwnerService.refreshCodeOwnerRules(event.file)
                         break
                     }
                 }
@@ -68,7 +68,7 @@ internal class CodeOwnersWidget @Inject constructor(
 
     private fun getCurrentCodeOwnerRule(): CodeOwnerRule? {
         val file = currentOrSelectedFile ?: return null
-        return codeOwners.getCodeOwners(file)
+        return codeOwnerService.getCodeOwners(file)
     }
 
     private fun update(file: VirtualFile?) {

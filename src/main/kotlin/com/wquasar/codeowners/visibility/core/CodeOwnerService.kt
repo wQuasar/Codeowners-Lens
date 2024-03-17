@@ -6,7 +6,7 @@ import com.wquasar.codeowners.visibility.glob.RuleGlobMatcher
 import com.wquasar.codeowners.visibility.file.FilesHelper
 import javax.inject.Inject
 
-internal class CodeOwners @Inject constructor(
+internal class CodeOwnerService @Inject constructor(
     private val ruleGlobMatcher: RuleGlobMatcher,
     private val filesHelper: FilesHelper,
 ) {
