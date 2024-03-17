@@ -3,7 +3,12 @@ package com.wquasar.codeowners.visibility.widget
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.popup.JBPopup
+import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.ui.popup.PopupStep
+import com.intellij.openapi.ui.popup.util.BaseListPopupStep
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
@@ -27,6 +32,7 @@ internal class CodeOwnersWidget @Inject constructor(
 
     companion object {
         const val ID = "com.wquasar.codeowners.visibility.widget.CodeOwnersWidget"
+        const val EMPTY_OWNER = "¯\\_(ツ)_/¯"
     }
 
     private val connection: MessageBusConnection = currentProject.messageBus.connect(this)
@@ -51,18 +57,44 @@ internal class CodeOwnersWidget @Inject constructor(
 
     override fun getSelectedValue(): String {
         if (currentOrSelectedFile == null) return ""
-        val owners = getCurrentCodeOwnerRule()?.owners ?: return "¯\\_(ツ)_/¯"
+        val owners = getCurrentCodeOwnerRule()?.owners ?: return EMPTY_OWNER
 
         return when {
-            owners.size == 0 -> "¯\\_(ツ)_/¯"
+            owners.isEmpty() -> EMPTY_OWNER
             owners.size == 1 -> owners.first()
             else -> "${owners.first()} & ${owners.size - 1} more"
         }
     }
 
-    override fun getTooltipText(): String {
-        return "Hello, tip from the world!"
+    override fun getPopup(): JBPopup? {
+        val codeOwnerRule =
+            getCurrentCodeOwnerRule() ?: return null
+        val owners = codeOwnerRule.owners
+
+        if (owners.size == 1) {
+            goToOwner(codeOwnerRule.lineNumber)
+            return null
+        }
+
+        return JBPopupFactory.getInstance().createListPopup(
+            object : BaseListPopupStep<String>("All Codeowners", owners) {
+                override fun onChosen(selectedValue: String?, finalChoice: Boolean): PopupStep<*>? {
+                    goToOwner(codeOwnerRule.lineNumber)
+                    return super.onChosen(selectedValue, finalChoice)
+                }
+            }
+        )
     }
+
+    private fun goToOwner(lineNumber: Int) {
+        val baseDirPath = filesHelper.getBaseDir(currentOrSelectedFile) ?: return
+        val codeOwnerFile = filesHelper.findCodeOwnersFile(baseDirPath) ?: return
+
+        val vf = codeOwnerFile.toPath().let { VirtualFileManager.getInstance().findFileByNioPath(it) } ?: return
+        OpenFileDescriptor(project, vf, lineNumber, 0).navigate(true)
+    }
+
+    override fun getTooltipText() = "Click to show in CODEOWNERS"
 
     override fun getPresentation() = this
 
