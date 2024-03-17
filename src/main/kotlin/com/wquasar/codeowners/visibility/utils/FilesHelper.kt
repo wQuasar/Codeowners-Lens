@@ -30,9 +30,8 @@ internal class FilesHelper @Inject constructor(
         val relPath = relativeTo?.toNioPathOrNull() ?: return null
         return moduleManager.sortedModules
             .mapNotNull { moduleDirProvider.guessModuleDir(it)?.toNioPathOrNull() }
-            .filter { relPath.startsWith(it) }
-            .minBy { it.toList().size }
-            .toString()
+            .firstOrNull { relPath.startsWith(it) }
+            ?.toString()
     }
 
     fun isCodeOwnersFile(file: VirtualFile?): Boolean {

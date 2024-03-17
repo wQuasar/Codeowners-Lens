@@ -12,11 +12,6 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation(libs.dagger.get())
-    kapt(libs.daggerKapt.get())
-}
-
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
@@ -50,4 +45,11 @@ tasks {
     publishPlugin {
         token.set(System.getenv("PUBLISH_TOKEN"))
     }
+}
+
+dependencies {
+    implementation(libs.dagger.get())
+    kapt(libs.daggerKapt.get())
+
+    testImplementation(libs.mockito.get())
 }
