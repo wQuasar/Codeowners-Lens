@@ -3,7 +3,7 @@ package com.wquasar.codeowners.visibility
 import com.intellij.openapi.vfs.VirtualFile
 import com.wquasar.codeowners.visibility.glob.Glob
 import com.wquasar.codeowners.visibility.glob.GlobMatcher
-import com.wquasar.codeowners.visibility.utils.FilesHelper
+import com.wquasar.codeowners.visibility.file.FilesHelper
 import javax.inject.Inject
 
 internal class CodeOwners @Inject constructor(

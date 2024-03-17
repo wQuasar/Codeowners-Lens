@@ -13,7 +13,7 @@ import com.intellij.openapi.wm.impl.status.EditorBasedWidget
 import com.intellij.refactoring.listeners.RefactoringEventData
 import com.intellij.refactoring.listeners.RefactoringEventListener
 import com.intellij.util.messages.MessageBusConnection
-import com.wquasar.codeowners.visibility.utils.FilesHelper
+import com.wquasar.codeowners.visibility.file.FilesHelper
 import javax.inject.Inject
 
 internal class CodeOwnersWidget @Inject constructor(

@@ -1,11 +1,10 @@
-package com.wquasar.codeowners.visibility.utils
+package com.wquasar.codeowners.visibility.file
 
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.toNioPathOrNull
-import com.wquasar.codeowners.visibility.file.ModuleDirProvider
 import org.junit.Assert.*
 import org.junit.Test
 import org.mockito.Mockito.mock
