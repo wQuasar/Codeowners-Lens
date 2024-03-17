@@ -4,7 +4,7 @@ import com.intellij.openapi.util.io.systemIndependentPath
 import com.wquasar.codeowners.visibility.CodeOwnerRule
 import java.io.File
 
-internal data class Glob(
+internal data class RuleGlob(
     val codeOwnerRule: CodeOwnerRule,
     private val baseDir: String,
 ) {

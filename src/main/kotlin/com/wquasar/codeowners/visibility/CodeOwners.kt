@@ -1,17 +1,17 @@
 package com.wquasar.codeowners.visibility
 
 import com.intellij.openapi.vfs.VirtualFile
-import com.wquasar.codeowners.visibility.glob.Glob
-import com.wquasar.codeowners.visibility.glob.GlobMatcher
+import com.wquasar.codeowners.visibility.glob.RuleGlob
+import com.wquasar.codeowners.visibility.glob.RuleGlobMatcher
 import com.wquasar.codeowners.visibility.file.FilesHelper
 import javax.inject.Inject
 
 internal class CodeOwners @Inject constructor(
-    private val globMatcher: GlobMatcher,
+    private val ruleGlobMatcher: RuleGlobMatcher,
     private val filesHelper: FilesHelper,
 ) {
 
-    private val codeOwnerRulesGlobs: LinkedHashSet<Glob> = linkedSetOf()
+    private val codeOwnerRuleGlobs: LinkedHashSet<RuleGlob> = linkedSetOf()
 
     companion object {
         val validCodeOwnersPaths = listOf(
@@ -22,7 +22,7 @@ internal class CodeOwners @Inject constructor(
     }
 
     fun getCodeOwners(file: VirtualFile): CodeOwnerRule? {
-        if (codeOwnerRulesGlobs.isEmpty()) {
+        if (codeOwnerRuleGlobs.isEmpty()) {
             updateCodeOwnerRules(file)
         }
 
@@ -30,17 +30,17 @@ internal class CodeOwners @Inject constructor(
 
         return if (null == codeOwnerRule) {
             updateCodeOwnerRules(file)
-            matchCodeOwnerRuleForFile(file)?.codeOwnerRule
+            matchCodeOwnerRuleForFile(file)
         } else {
-            codeOwnerRule.codeOwnerRule
+            codeOwnerRule
         }
     }
 
     private fun matchCodeOwnerRuleForFile(
         file: VirtualFile
-    ) = codeOwnerRulesGlobs.findLast {
-        globMatcher.matches(it, file.path)
-    }
+    ) = codeOwnerRuleGlobs.findLast {
+        ruleGlobMatcher.matches(it, file.path)
+    }?.codeOwnerRule
 
     private fun updateCodeOwnerRules(file: VirtualFile?) {
         val baseDirPath = filesHelper.getBaseDir(file) ?: return
@@ -58,12 +58,12 @@ internal class CodeOwners @Inject constructor(
             .toCollection(LinkedHashSet())
 
         for (rule in codeOwnerRules) {
-            codeOwnerRulesGlobs.add(Glob(rule, baseDirPath))
+            codeOwnerRuleGlobs.add(RuleGlob(rule, baseDirPath))
         }
     }
 
     fun refreshCodeOwnerRules(file: VirtualFile?) {
-        codeOwnerRulesGlobs.clear()
+        codeOwnerRuleGlobs.clear()
         updateCodeOwnerRules(file)
     }
 }

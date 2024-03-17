@@ -3,9 +3,9 @@ package com.wquasar.codeowners.visibility.glob
 import java.util.*
 import javax.inject.Inject
 
-internal class GlobMatcher @Inject constructor() {
-    fun matches(glob: Glob, absolutePath: String): Boolean =
-        matchSegments(glob.segments, absolutePath.split('/')) != glob.codeOwnerRule.pattern.startsWith("!")
+internal class RuleGlobMatcher @Inject constructor() {
+    fun matches(ruleGlob: RuleGlob, absolutePath: String): Boolean =
+        matchSegments(ruleGlob.segments, absolutePath.split('/')) != ruleGlob.codeOwnerRule.pattern.startsWith("!")
 
     // example:
     // path: b/b/c, glob: **/b/c
@@ -21,7 +21,7 @@ internal class GlobMatcher @Inject constructor() {
     //
     // time: O(n*m), space: O(m), where n - path.size, m - segments.size
     //
-    private fun matchSegments(segments: List<Glob.Segment>, paths: List<String>): Boolean {
+    private fun matchSegments(segments: List<RuleGlob.Segment>, paths: List<String>): Boolean {
         val sizeOfSegments = segments.size
         var match = BitSet(sizeOfSegments + 1).apply { set(0) }
         var nextMatch = BitSet(sizeOfSegments + 1) // next possible segment

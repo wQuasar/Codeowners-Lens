@@ -4,21 +4,21 @@ import com.wquasar.codeowners.visibility.CodeOwnerRule
 import org.junit.Assert.*
 import org.junit.Test
 
-internal class GlobTest {
+internal class RuleGlobTest {
 
     @Test
     fun `Segment matches input correctly`() {
-        val segment = Glob.Segment(Regex(".*"), true)
+        val segment = RuleGlob.Segment(Regex(".*"), true)
         assertTrue(segment.matches("any string"))
     }
 
     @Test
     fun `Glob init creates correct segments`() {
         val rule = CodeOwnerRule("pattern", listOf("owner"), 1)
-        val glob = Glob(rule, "baseDir")
-        assertEquals(3, glob.segments.size)
-        assertFalse(glob.segments[0].optional)
-        assertFalse(glob.segments[1].optional)
-        assertTrue(glob.segments[2].optional)
+        val ruleGlob = RuleGlob(rule, "baseDir")
+        assertEquals(3, ruleGlob.segments.size)
+        assertFalse(ruleGlob.segments[0].optional)
+        assertFalse(ruleGlob.segments[1].optional)
+        assertTrue(ruleGlob.segments[2].optional)
     }
 }
