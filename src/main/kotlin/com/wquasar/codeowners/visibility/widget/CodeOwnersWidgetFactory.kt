@@ -1,4 +1,4 @@
-package com.wquasar.codeowners.visibility
+package com.wquasar.codeowners.visibility.widget
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.StatusBarWidgetFactory

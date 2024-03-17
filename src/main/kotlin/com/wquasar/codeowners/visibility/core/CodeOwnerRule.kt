@@ -1,4 +1,4 @@
-package com.wquasar.codeowners.visibility
+package com.wquasar.codeowners.visibility.core
 
 internal data class CodeOwnerRule(
     val pattern: String,

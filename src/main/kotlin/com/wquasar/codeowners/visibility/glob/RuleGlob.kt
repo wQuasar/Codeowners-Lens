@@ -1,7 +1,7 @@
 package com.wquasar.codeowners.visibility.glob
 
 import com.intellij.openapi.util.io.systemIndependentPath
-import com.wquasar.codeowners.visibility.CodeOwnerRule
+import com.wquasar.codeowners.visibility.core.CodeOwnerRule
 import java.io.File
 
 internal data class RuleGlob(

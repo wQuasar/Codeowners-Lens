@@ -1,4 +1,4 @@
-package com.wquasar.codeowners.visibility
+package com.wquasar.codeowners.visibility.widget
 
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
@@ -13,6 +13,8 @@ import com.intellij.openapi.wm.impl.status.EditorBasedWidget
 import com.intellij.refactoring.listeners.RefactoringEventData
 import com.intellij.refactoring.listeners.RefactoringEventListener
 import com.intellij.util.messages.MessageBusConnection
+import com.wquasar.codeowners.visibility.core.CodeOwnerRule
+import com.wquasar.codeowners.visibility.core.CodeOwners
 import com.wquasar.codeowners.visibility.file.FilesHelper
 import javax.inject.Inject
 
@@ -24,7 +26,7 @@ internal class CodeOwnersWidget @Inject constructor(
     RefactoringEventListener, FileEditorManagerListener {
 
     companion object {
-        const val ID = "com.wquasar.codeowners.visibility.CodeOwnersWidget"
+        const val ID = "com.wquasar.codeowners.visibility.widget.CodeOwnersWidget"
     }
 
     private val connection: MessageBusConnection = currentProject.messageBus.connect(this)

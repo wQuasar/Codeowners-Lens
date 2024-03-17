@@ -1,5 +1,6 @@
-package com.wquasar.codeowners.visibility
+package com.wquasar.codeowners.visibility.core
 
+import com.wquasar.codeowners.visibility.core.CodeOwnerRule
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

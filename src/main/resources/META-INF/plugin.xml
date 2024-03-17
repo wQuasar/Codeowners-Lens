@@ -25,7 +25,7 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <statusBarWidgetFactory implementation="com.wquasar.codeowners.visibility.CodeOwnersWidgetFactory"
-                                id="com.wquasar.codeowners.visibility.CodeOwnersWidget"/>
+        <statusBarWidgetFactory implementation="com.wquasar.codeowners.visibility.widget.CodeOwnersWidgetFactory"
+                                id="com.wquasar.codeowners.visibility.widget.CodeOwnersWidget"/>
     </extensions>
 </idea-plugin>

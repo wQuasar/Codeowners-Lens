@@ -4,7 +4,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.toNioPathOrNull
-import com.wquasar.codeowners.visibility.CodeOwners
+import com.wquasar.codeowners.visibility.core.CodeOwners
 import java.io.File
 import java.nio.file.Path
 import javax.inject.Inject

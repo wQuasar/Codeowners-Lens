@@ -1,4 +1,4 @@
-package com.wquasar.codeowners.visibility
+package com.wquasar.codeowners.visibility.core
 
 import com.intellij.openapi.vfs.VirtualFile
 import com.wquasar.codeowners.visibility.glob.RuleGlob
