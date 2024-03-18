@@ -9,14 +9,16 @@ import org.junit.Assert.*
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
+import java.io.File
 import java.nio.file.Path
 
-internal class FilesHelperTest {
+internal class FilesHelperImplTest {
 
     private val localFileSystem = mock(LocalFileSystem::class.java)
     private val moduleManager = mock(ModuleManager::class.java)
     private val moduleDirProvider = mock(ModuleDirProvider::class.java)
-    private val filesHelper = FilesHelper(localFileSystem, moduleManager, moduleDirProvider)
+    private val fileWrapper = mock(FileWrapper::class.java)
+    private val filesHelper = FilesHelperImpl(localFileSystem, moduleManager, moduleDirProvider, fileWrapper)
 
     @Test
     fun `findCodeOwnersFile finds CodeOwners file when it exists`() {
@@ -96,4 +98,54 @@ internal class FilesHelperTest {
 
         assertFalse(result)
     }
+
+    @Test
+    fun `readLines returns list of lines from file`() {
+        val file = mock(File::class.java)
+        val lines = listOf("line1", "line2")
+        `when`(fileWrapper.readLines(file)).thenReturn(lines)
+
+        val result = filesHelper.readLines(file)
+
+        assertEquals(lines, result)
+    }
+
+    @Test
+    fun `getColumnIndexForCodeOwner returns index of code owner label in line`() {
+        val file = mock(File::class.java)
+        val lineNumber = 0
+        val codeOwnerLabel = "owner2"
+        val codeOwnerLine = "owner1 owner2 owner3"
+        `when`(fileWrapper.readLines(file)).thenReturn(listOf(codeOwnerLine))
+
+        val result = filesHelper.getColumnIndexForCodeOwner(file, lineNumber, codeOwnerLabel)
+
+        assertEquals(codeOwnerLine.indexOf(codeOwnerLabel), result)
+    }
+
+    @Test
+    fun `getColumnIndexForCodeOwner returns 0 when code owner label is not found in line`() {
+        val file = mock(File::class.java)
+        val lineNumber = 0
+        val codeOwnerLine = "owner1 owner2 owner3"
+        `when`(fileWrapper.readLines(file)).thenReturn(listOf(codeOwnerLine))
+
+        val result = filesHelper.getColumnIndexForCodeOwner(file, lineNumber, "otherOwner")
+
+        assertEquals(0, result)
+    }
+
+    @Test
+    fun `getColumnIndexForCodeOwner returns 0 when line is empty`() {
+        val file = mock(File::class.java)
+        val lineNumber = 0
+        val codeOwnerLabel = "owner"
+        val codeOwnerLine = ""
+        `when`(fileWrapper.readLines(file)).thenReturn(listOf(codeOwnerLine))
+
+        val result = filesHelper.getColumnIndexForCodeOwner(file, lineNumber, codeOwnerLabel)
+
+        assertEquals(0, result)
+    }
+
 }

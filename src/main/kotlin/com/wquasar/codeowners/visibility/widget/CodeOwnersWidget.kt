@@ -72,26 +72,27 @@ internal class CodeOwnersWidget @Inject constructor(
         val owners = codeOwnerRule.owners
 
         if (owners.size == 1) {
-            goToOwner(codeOwnerRule.lineNumber)
+            goToOwner(codeOwnerRule.lineNumber, owners.first())
             return null
         }
 
         return JBPopupFactory.getInstance().createListPopup(
             object : BaseListPopupStep<String>("All Codeowners", owners) {
-                override fun onChosen(selectedValue: String?, finalChoice: Boolean): PopupStep<*>? {
-                    goToOwner(codeOwnerRule.lineNumber)
+                override fun onChosen(selectedValue: String, finalChoice: Boolean): PopupStep<*>? {
+                    goToOwner(codeOwnerRule.lineNumber, selectedValue)
                     return super.onChosen(selectedValue, finalChoice)
                 }
             }
         )
     }
 
-    private fun goToOwner(lineNumber: Int) {
+    private fun goToOwner(lineNumber: Int, codeOwnerLabel: String) {
         val baseDirPath = filesHelper.getBaseDir(currentOrSelectedFile) ?: return
         val codeOwnerFile = filesHelper.findCodeOwnersFile(baseDirPath) ?: return
 
         val vf = codeOwnerFile.toPath().let { VirtualFileManager.getInstance().findFileByNioPath(it) } ?: return
-        OpenFileDescriptor(project, vf, lineNumber, 0).navigate(true)
+        val columnIndex = filesHelper.getColumnIndexForCodeOwner(codeOwnerFile, lineNumber, codeOwnerLabel)
+        OpenFileDescriptor(project, vf, lineNumber, columnIndex).navigate(true)
     }
 
     override fun getTooltipText() = "Click to show in CODEOWNERS"

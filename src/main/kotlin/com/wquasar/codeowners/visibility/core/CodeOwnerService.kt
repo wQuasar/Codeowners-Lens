@@ -1,9 +1,9 @@
 package com.wquasar.codeowners.visibility.core
 
 import com.intellij.openapi.vfs.VirtualFile
+import com.wquasar.codeowners.visibility.file.FilesHelper
 import com.wquasar.codeowners.visibility.glob.RuleGlob
 import com.wquasar.codeowners.visibility.glob.RuleGlobMatcher
-import com.wquasar.codeowners.visibility.file.FilesHelper
 import javax.inject.Inject
 
 internal class CodeOwnerService @Inject constructor(
