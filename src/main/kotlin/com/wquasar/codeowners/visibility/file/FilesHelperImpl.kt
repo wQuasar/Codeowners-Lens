@@ -1,6 +1,8 @@
 package com.wquasar.codeowners.visibility.file
 
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.toNioPathOrNull
@@ -43,5 +45,18 @@ internal class FilesHelperImpl(
         val pattern = "(?<=^|\\s)\\Q$codeOwnerLabel\\E(?=\\s|\$)".toRegex()
         val matchResult = pattern.find(codeOwnerLine)
         return matchResult?.range?.first ?: 0
+    }
+
+    override fun openFile(project: Project, file: VirtualFile, lineNumber: Int, columnIndex: Int) {
+        OpenFileDescriptor(project, file, lineNumber, lineNumber).navigate(true)
+    }
+
+    override fun getTruncatedFileName(file: VirtualFile): String {
+        val pathSegments = file.path.split("/")
+        val segmentCount = pathSegments.size
+        return when {
+            segmentCount <= 3 -> file.path
+            else -> ".../${pathSegments.takeLast(3).joinToString("/")}"
+        }
     }
 }

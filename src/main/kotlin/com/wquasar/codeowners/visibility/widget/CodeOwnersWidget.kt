@@ -3,7 +3,6 @@ package com.wquasar.codeowners.visibility.widget
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopup
@@ -99,7 +98,7 @@ internal class CodeOwnersWidget(
 
         val vf = codeOwnerFile.toPath().let { VirtualFileManager.getInstance().findFileByNioPath(it) } ?: return
         val columnIndex = filesHelper.getColumnIndexForCodeOwner(codeOwnerFile, lineNumber, codeOwnerLabel)
-        OpenFileDescriptor(project, vf, lineNumber, columnIndex).navigate(true)
+        filesHelper.openFile(project, vf, lineNumber, columnIndex)
     }
 
     override fun getTooltipText() = "Click to show in CODEOWNERS"

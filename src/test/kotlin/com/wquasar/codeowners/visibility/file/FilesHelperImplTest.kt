@@ -148,4 +148,24 @@ internal class FilesHelperImplTest {
         assertEquals(0, result)
     }
 
+    @Test
+    fun `getTruncatedFileName returns full file path when it has 3 or less segments`() {
+        val file = mock(VirtualFile::class.java)
+        `when`(file.path).thenReturn("path/to/file")
+
+        val result = filesHelper.getTruncatedFileName(file)
+
+        assertEquals("path/to/file", result)
+    }
+
+    @Test
+    fun `getTruncatedFileName returns truncated file path when it has more than 3 segments`() {
+        val file = mock(VirtualFile::class.java)
+        `when`(file.path).thenReturn("/path/to/first/second/third/file")
+
+        val result = filesHelper.getTruncatedFileName(file)
+
+        assertEquals(".../second/third/file", result)
+    }
+
 }

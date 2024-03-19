@@ -28,4 +28,12 @@
         <statusBarWidgetFactory implementation="com.wquasar.codeowners.visibility.widget.CodeOwnersWidgetFactory"
                                 id="com.wquasar.codeowners.visibility.widget.CodeOwnersWidget"/>
     </extensions>
+    <actions>
+        <action id="com.wquasar.codeowners.visibility.commit.CodeOwnersCommitAction"
+                class="com.wquasar.codeowners.visibility.commit.CodeOwnersCommitAction"
+                icon="/icons/pluginIcon.svg"
+                text="See Codeowners">
+            <add-to-group group-id="Vcs.MessageActionGroup" anchor="last"/>
+        </action>
+    </actions>
 </idea-plugin>
