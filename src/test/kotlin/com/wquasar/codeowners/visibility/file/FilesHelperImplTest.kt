@@ -18,7 +18,7 @@ internal class FilesHelperImplTest {
     private val moduleManager = mock(ModuleManager::class.java)
     private val moduleDirProvider = mock(ModuleDirProvider::class.java)
     private val fileWrapper = mock(FileWrapper::class.java)
-    private val filesHelper = FilesHelperImpl(localFileSystem, moduleManager, moduleDirProvider, fileWrapper)
+    private val filesHelper = FilesHelperImpl(localFileSystem, moduleDirProvider, fileWrapper)
 
     @Test
     fun `findCodeOwnersFile finds CodeOwners file when it exists`() {
@@ -59,7 +59,7 @@ internal class FilesHelperImplTest {
         `when`(moduleDirProvider.guessModuleDir(module)).thenReturn(relativeTo)
         `when`(relativeTo.toNioPathOrNull()).thenReturn(Path.of("$moduleDir/subDir"))
 
-        val result = filesHelper.getBaseDir(relativeTo)
+        val result = filesHelper.getBaseDir(moduleManager, relativeTo)
 
         assertEquals("$moduleDir/subDir", result)
     }
@@ -74,7 +74,7 @@ internal class FilesHelperImplTest {
         `when`(moduleDirProvider.guessModuleDir(module)).thenReturn(moduleDir)
         `when`(relativeTo.toNioPathOrNull()).thenReturn(Path.of("/path/to/moduleDir/subDir"))
 
-        val result = filesHelper.getBaseDir(relativeTo)
+        val result = filesHelper.getBaseDir(moduleManager, relativeTo)
 
         assertNull(result)
     }

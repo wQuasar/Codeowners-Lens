@@ -1,5 +1,6 @@
 package com.wquasar.codeowners.visibility.core
 
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.wquasar.codeowners.visibility.file.FilesHelper
 import com.wquasar.codeowners.visibility.glob.RuleGlob
@@ -21,15 +22,15 @@ internal class CodeOwnerService @Inject constructor(
         )
     }
 
-    fun getCodeOwners(file: VirtualFile): CodeOwnerRule? {
+    fun getCodeOwners(moduleManager: ModuleManager, file: VirtualFile): CodeOwnerRule? {
         if (codeOwnerRuleGlobs.isEmpty()) {
-            updateCodeOwnerRules(file)
+            updateCodeOwnerRules(moduleManager, file)
         }
 
         val codeOwnerRule = matchCodeOwnerRuleForFile(file)
 
         return if (null == codeOwnerRule) {
-            updateCodeOwnerRules(file)
+            updateCodeOwnerRules(moduleManager, file)
             matchCodeOwnerRuleForFile(file)
         } else {
             codeOwnerRule
@@ -42,8 +43,8 @@ internal class CodeOwnerService @Inject constructor(
         ruleGlobMatcher.matches(it, file.path)
     }?.codeOwnerRule
 
-    private fun updateCodeOwnerRules(file: VirtualFile?) {
-        val baseDirPath = filesHelper.getBaseDir(file) ?: return
+    private fun updateCodeOwnerRules(moduleManager: ModuleManager, file: VirtualFile?) {
+        val baseDirPath = filesHelper.getBaseDir(moduleManager, file) ?: return
         val codeOwnerFile = filesHelper.findCodeOwnersFile(baseDirPath) ?: return
 
         val codeOwnerRules = codeOwnerFile
@@ -62,8 +63,8 @@ internal class CodeOwnerService @Inject constructor(
         }
     }
 
-    fun refreshCodeOwnerRules(file: VirtualFile?) {
+    fun refreshCodeOwnerRules(moduleManager: ModuleManager, file: VirtualFile?) {
         codeOwnerRuleGlobs.clear()
-        updateCodeOwnerRules(file)
+        updateCodeOwnerRules(moduleManager, file)
     }
 }

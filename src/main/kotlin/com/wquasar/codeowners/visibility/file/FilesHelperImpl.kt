@@ -10,7 +10,6 @@ import java.nio.file.Path
 
 internal class FilesHelperImpl(
     private val localFileSystem: LocalFileSystem,
-    private val moduleManager: ModuleManager,
     private val moduleDirProvider: ModuleDirProvider,
     private val fileWrapper: FileWrapper,
 ) : FilesHelper {
@@ -23,7 +22,7 @@ internal class FilesHelperImpl(
             .firstOrNull { it.isFile }
     }
 
-    override fun getBaseDir(relativeTo: VirtualFile?): String? {
+    override fun getBaseDir(moduleManager: ModuleManager, relativeTo: VirtualFile?): String? {
         val relPath = relativeTo?.toNioPathOrNull() ?: return null
         return moduleManager.sortedModules
             .mapNotNull { moduleDirProvider.guessModuleDir(it)?.toNioPathOrNull() }

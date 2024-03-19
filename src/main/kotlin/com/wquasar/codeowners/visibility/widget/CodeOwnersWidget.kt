@@ -4,6 +4,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -22,9 +23,8 @@ import com.intellij.util.messages.MessageBusConnection
 import com.wquasar.codeowners.visibility.core.CodeOwnerRule
 import com.wquasar.codeowners.visibility.core.CodeOwnerService
 import com.wquasar.codeowners.visibility.file.FilesHelper
-import javax.inject.Inject
 
-internal class CodeOwnersWidget @Inject constructor(
+internal class CodeOwnersWidget(
     currentProject: Project,
     private val codeOwnerService: CodeOwnerService,
     private val filesHelper: FilesHelper,
@@ -44,7 +44,7 @@ internal class CodeOwnersWidget @Inject constructor(
             override fun after(events: MutableList<out VFileEvent>) {
                 for (event in events) {
                     if (filesHelper.isCodeOwnersFile(event.file)) {
-                        codeOwnerService.refreshCodeOwnerRules(event.file)
+                        codeOwnerService.refreshCodeOwnerRules(ModuleManager.getInstance(project), event.file)
                         break
                     }
                 }
@@ -94,7 +94,7 @@ internal class CodeOwnersWidget @Inject constructor(
     }
 
     private fun goToOwner(lineNumber: Int, codeOwnerLabel: String) {
-        val baseDirPath = filesHelper.getBaseDir(currentOrSelectedFile) ?: return
+        val baseDirPath = filesHelper.getBaseDir(ModuleManager.getInstance(project), currentOrSelectedFile) ?: return
         val codeOwnerFile = filesHelper.findCodeOwnersFile(baseDirPath) ?: return
 
         val vf = codeOwnerFile.toPath().let { VirtualFileManager.getInstance().findFileByNioPath(it) } ?: return
@@ -108,7 +108,7 @@ internal class CodeOwnersWidget @Inject constructor(
 
     private fun getCurrentCodeOwnerRule(): CodeOwnerRule? {
         val file = currentOrSelectedFile ?: return null
-        return codeOwnerService.getCodeOwners(file)
+        return codeOwnerService.getCodeOwners(ModuleManager.getInstance(project), file)
     }
 
     private fun update(file: VirtualFile?) {
