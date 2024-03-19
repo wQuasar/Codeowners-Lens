@@ -22,6 +22,7 @@ import com.intellij.util.messages.MessageBusConnection
 import com.wquasar.codeowners.visibility.core.CodeOwnerRule
 import com.wquasar.codeowners.visibility.core.CodeOwnerService
 import com.wquasar.codeowners.visibility.file.FilesHelper
+import javax.swing.SwingConstants
 
 internal class CodeOwnersWidget(
     currentProject: Project,
@@ -82,14 +83,16 @@ internal class CodeOwnersWidget(
             return null
         }
 
-        return JBPopupFactory.getInstance().createListPopup(
-            object : BaseListPopupStep<String>("All Codeowners", owners) {
+        val popup = JBPopupFactory.getInstance().createListPopup(
+            object : BaseListPopupStep<String>("", owners) {
                 override fun onChosen(selectedValue: String, finalChoice: Boolean): PopupStep<*>? {
                     goToOwner(codeOwnerRule.lineNumber, selectedValue)
                     return super.onChosen(selectedValue, finalChoice)
                 }
             }
         )
+        popup.setAdText("All codeowners", SwingConstants.CENTER)
+        return popup
     }
 
     private fun goToOwner(lineNumber: Int, codeOwnerLabel: String) {

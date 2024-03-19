@@ -1,23 +1,15 @@
 package com.wquasar.codeowners.visibility.commit
 
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.openapi.ui.popup.ListPopupStep
-import com.intellij.openapi.ui.popup.PopupStep
-import com.intellij.openapi.ui.popup.util.BaseListPopupStep
 import com.intellij.openapi.vcs.changes.ChangeListManager
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.ui.awt.RelativePoint
 import com.wquasar.codeowners.visibility.core.CodeOwnerService
 import com.wquasar.codeowners.visibility.di.CodeOwnersComponentProvider
 import com.wquasar.codeowners.visibility.file.FilesHelper
 import java.awt.event.MouseEvent
 import javax.inject.Inject
-import javax.swing.SwingConstants
 
 internal class CodeOwnersCommitAction : AnAction() {
 
@@ -66,38 +58,37 @@ internal class CodeOwnersCommitAction : AnAction() {
         val point = mouseEvent?.point ?: return
         val component = actionEvent.getData(PlatformDataKeys.CONTEXT_COMPONENT) ?: return
 
-        val popupStep: ListPopupStep<String> = object : BaseListPopupStep<String>(
-            "",
-            codeOwnerMap.keys.toList()
-        ) {
-            override fun onChosen(selectedValue: String, finalChoice: Boolean): PopupStep<out Any>? {
-                val modifiedOwnedFiles = codeOwnerMap[selectedValue] ?: return null
+        val actionGroup = DefaultActionGroup().apply {
+            codeOwnerMap.keys.forEach { owner ->
+                val modifiedOwnedFiles = codeOwnerMap[owner] ?: return@forEach
 
                 // if one file, open it else, show files list
                 when (modifiedOwnedFiles.size) {
-                    1 -> filesHelper.openFile(project, modifiedOwnedFiles.first())
-                    else -> return createSubListPopupStep(modifiedOwnedFiles)
+                    1 -> addPopupItemAction(owner, modifiedOwnedFiles.first())
+                    else -> {
+                        val fileActionGroup = DefaultActionGroup(owner, true).apply {
+                            modifiedOwnedFiles.forEach { file ->
+                                addPopupItemAction(filesHelper.getTruncatedFileName(file), file)
+                            }
+                        }
+                        add(fileActionGroup)
+                    }
                 }
-
-                return super.onChosen(selectedValue, finalChoice)
             }
         }
 
-        val popup = JBPopupFactory.getInstance().createListPopup(popupStep)
-        popup.setAdText("Affected codeowners", SwingConstants.LEADING)
-        popup.show(RelativePoint(component, point))
+        val popup = ActionManager.getInstance().createActionPopupMenu("CodeOwners.Commit", actionGroup)
+        popup.component.show(component, point.x, point.y)
     }
 
-    private fun createSubListPopupStep(filePaths: MutableList<VirtualFile>): PopupStep<*> {
-        val truncatedFilePaths = filePaths.map {
-            filesHelper.getTruncatedFileName(it)
-        }
-
-        return object : BaseListPopupStep<String>("", truncatedFilePaths) {
-            override fun onChosen(selectedValue: String, finalChoice: Boolean): PopupStep<*>? {
-                filesHelper.openFile(project, filePaths[truncatedFilePaths.indexOf(selectedValue)])
-                return super.onChosen(selectedValue, finalChoice)
+    private fun DefaultActionGroup.addPopupItemAction(
+        fileName: String,
+        file: VirtualFile
+    ) {
+        add(object : AnAction(fileName) {
+            override fun actionPerformed(e: AnActionEvent) {
+                filesHelper.openFile(project, file)
             }
-        }
+        })
     }
 }
