@@ -13,6 +13,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
+import com.intellij.openapi.wm.StatusBar
 import com.intellij.openapi.wm.StatusBarWidget
 import com.intellij.openapi.wm.impl.status.EditorBasedWidget
 import com.intellij.refactoring.listeners.RefactoringEventData
@@ -63,6 +64,12 @@ internal class CodeOwnersWidget @Inject constructor(
             owners.isEmpty() -> EMPTY_OWNER
             owners.size == 1 -> owners.first()
             else -> "${owners.first()} & ${owners.size - 1} more"
+        }
+    }
+
+    override fun install(statusBar: StatusBar) {
+        if (statusBar.project == project) {
+            super.install(statusBar)
         }
     }
 
