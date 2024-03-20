@@ -48,7 +48,7 @@ internal class FilesHelperImpl(
     }
 
     override fun openFile(project: Project, file: VirtualFile, lineNumber: Int, columnIndex: Int) {
-        OpenFileDescriptor(project, file, lineNumber, lineNumber).navigate(true)
+        OpenFileDescriptor(project, file, lineNumber, columnIndex).navigate(true)
     }
 
     override fun getTruncatedFileName(file: VirtualFile): String {
