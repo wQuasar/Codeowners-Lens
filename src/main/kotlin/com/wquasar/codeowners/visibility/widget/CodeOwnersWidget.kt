@@ -69,7 +69,12 @@ internal class CodeOwnersWidget(
 
     override fun install(statusBar: StatusBar) {
         if (statusBar.project == project) {
-            super.install(statusBar)
+            val baseDirPath = filesHelper.getBaseDir(ModuleManager.getInstance(project), currentOrSelectedFile)
+            val codeOwnersFile = baseDirPath?.let { filesHelper.findCodeOwnersFile(it) }
+
+            if (codeOwnersFile != null) {
+                super.install(statusBar)
+            }
         }
     }
 
