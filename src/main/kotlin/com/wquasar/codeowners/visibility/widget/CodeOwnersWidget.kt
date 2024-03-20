@@ -53,13 +53,15 @@ internal class CodeOwnersWidget(
     }
 
     private var currentOrSelectedFile: VirtualFile? = null
+    private var currentFileCodeOwnerRule: CodeOwnerRule? = null
 
     override fun ID() = ID
 
     override fun getSelectedValue(): String {
         if (currentOrSelectedFile == null) return ""
-        val owners = getCurrentCodeOwnerRule()?.owners ?: return EMPTY_OWNER
 
+        currentFileCodeOwnerRule = getCurrentCodeOwnerRule()
+        val owners = currentFileCodeOwnerRule?.owners ?: return EMPTY_OWNER
         return when {
             owners.isEmpty() -> EMPTY_OWNER
             owners.size == 1 -> owners.first()
@@ -79,10 +81,8 @@ internal class CodeOwnersWidget(
     }
 
     override fun getPopup(): JBPopup? {
-        val codeOwnerRule =
-            getCurrentCodeOwnerRule() ?: return null
+        val codeOwnerRule = currentFileCodeOwnerRule ?: return null
         val owners = codeOwnerRule.owners
-
         if (owners.size == 1) {
             goToOwner(codeOwnerRule.lineNumber, owners.first())
             return null
@@ -109,7 +109,12 @@ internal class CodeOwnersWidget(
         filesHelper.openFile(project, vf, lineNumber, columnIndex)
     }
 
-    override fun getTooltipText() = "Click to show in CODEOWNERS"
+    override fun getTooltipText(): String {
+        return when (currentFileCodeOwnerRule?.owners?.size) {
+            0 -> "No codeowners found"
+            else -> "Click to show in CODEOWNERS"
+        }
+    }
 
     override fun getPresentation() = this
 
@@ -119,7 +124,7 @@ internal class CodeOwnersWidget(
     }
 
     private fun update(file: VirtualFile?) {
-        currentOrSelectedFile = file ?: getSelectedFile() ?: currentOrSelectedFile
+        currentOrSelectedFile = file ?: getSelectedFile()
         myStatusBar?.updateWidget(ID())
     }
 
