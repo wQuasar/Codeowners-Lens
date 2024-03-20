@@ -3,6 +3,7 @@ package com.wquasar.codeowners.visibility.commit
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vcs.ProjectLevelVcsManager
 import com.intellij.openapi.vcs.changes.ChangeListManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.wquasar.codeowners.visibility.core.CodeOwnerService
@@ -25,11 +26,22 @@ internal class CodeOwnersCommitAction : AnAction() {
 
     private lateinit var project: Project
 
-    override fun actionPerformed(actionEvent: AnActionEvent) {
+    override fun update(actionEvent: AnActionEvent) {
         project = actionEvent.project ?: return
+        actionEvent.presentation.isVisible = isGitEnabled()
+    }
 
+    override fun getActionUpdateThread(): ActionUpdateThread {
+        return ActionUpdateThread.EDT
+    }
+
+    override fun actionPerformed(actionEvent: AnActionEvent) {
         val codeOwnersMap: HashMap<String, MutableList<VirtualFile>> = populateCodeOwnersMap()
         createAndShowPopup(codeOwnersMap, actionEvent)
+    }
+
+    private fun isGitEnabled(): Boolean {
+        return ProjectLevelVcsManager.getInstance(project).checkVcsIsActive("Git")
     }
 
     private fun populateCodeOwnersMap(): HashMap<String, MutableList<VirtualFile>> {
