@@ -36,7 +36,7 @@ internal class CodeOwnersCommitAction : AnAction() {
     }
 
     override fun actionPerformed(actionEvent: AnActionEvent) {
-        val codeOwnersMap: HashMap<String, MutableList<VirtualFile>> = populateCodeOwnersMap()
+        val codeOwnersMap = populateCodeOwnersMap()
         createAndShowPopup(codeOwnersMap, actionEvent)
     }
 
@@ -74,18 +74,12 @@ internal class CodeOwnersCommitAction : AnAction() {
             codeOwnerMap.keys.forEach { owner ->
                 val modifiedOwnedFiles = codeOwnerMap[owner] ?: return@forEach
 
-                // if one file, open it else, show files list
-                when (modifiedOwnedFiles.size) {
-                    1 -> addPopupItemAction(owner, modifiedOwnedFiles.first())
-                    else -> {
-                        val fileActionGroup = DefaultActionGroup(owner, true).apply {
-                            modifiedOwnedFiles.forEach { file ->
-                                addPopupItemAction(filesHelper.getTruncatedFileName(file), file)
-                            }
-                        }
-                        add(fileActionGroup)
+                val fileActionGroup = DefaultActionGroup("$owner [${modifiedOwnedFiles.size}]", true).apply {
+                    modifiedOwnedFiles.forEach { file ->
+                        addPopupItemAction(filesHelper.getTruncatedFileName(file), file)
                     }
                 }
+                add(fileActionGroup)
             }
         }
 
