@@ -15,10 +15,11 @@ internal class CodeOwnerService @Inject constructor(
     private val codeOwnerRuleGlobs: LinkedHashSet<RuleGlob> = linkedSetOf()
 
     companion object {
+        private const val CODEOWNERS_FILE_NAME = "CODEOWNERS"
         val validCodeOwnersPaths = listOf(
-            "CODEOWNERS",
-            "docs/CODEOWNERS",
-            ".github/CODEOWNERS",
+            CODEOWNERS_FILE_NAME,
+            "docs/$CODEOWNERS_FILE_NAME",
+            ".github/$CODEOWNERS_FILE_NAME",
         )
     }
 

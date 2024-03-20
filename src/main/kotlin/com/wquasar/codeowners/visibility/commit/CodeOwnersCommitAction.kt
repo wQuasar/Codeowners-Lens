@@ -31,6 +31,7 @@ internal class CodeOwnersCommitAction : AnAction() {
     lateinit var filesHelper: FilesHelper
 
     private lateinit var project: Project
+    private var isCodeownerFileEdited = false
 
     override fun update(actionEvent: AnActionEvent) {
         project = actionEvent.project ?: return
@@ -47,22 +48,39 @@ internal class CodeOwnersCommitAction : AnAction() {
             createAndShowEmptyCodeownersPopup(actionEvent)
         } else {
             createAndShowCodeownersPopup(codeOwnersMap, actionEvent)
+            createAndShowCodeownersEditedPopupIfNeeded(actionEvent)
+        }
+    }
+
+    private fun createAndShowCodeownersEditedPopupIfNeeded(actionEvent: AnActionEvent) {
+        if (isCodeownerFileEdited) {
+            val component = actionEvent.inputEvent.component as? JComponent ?: return
+            val displayPoint = RelativePoint(component, Point(component.width / 2, 0))
+            val balloon = createBalloonPopup(
+                message = "Codeowners file is edited. Codeowner info may be incorrect.",
+                messageType = MessageType.WARNING,
+                duration = 8000,
+            )
+            balloon.show(displayPoint, Balloon.Position.above)
         }
     }
 
     private fun createAndShowEmptyCodeownersPopup(actionEvent: AnActionEvent) {
-        val displayPoint = getPopupDisplayPoint(actionEvent) ?: return
-        val balloon = JBPopupFactory.getInstance()
-            .createHtmlTextBalloonBuilder("No code owners found", MessageType.INFO, null)
-            .setFadeoutTime(5000)
-            .createBalloon()
+        val component = actionEvent.inputEvent.component as? JComponent ?: return
+        val displayPoint = RelativePoint(component, Point(component.width / 2, component.height))
+        val balloon = createBalloonPopup(
+            message = "No code owners found",
+            messageType = MessageType.INFO,
+            duration = 5000,
+        )
         balloon.show(displayPoint, Balloon.Position.below)
     }
 
-    private fun getPopupDisplayPoint(actionEvent: AnActionEvent): RelativePoint? {
-        val component = actionEvent.inputEvent.component as? JComponent ?: return null
-        return RelativePoint(component, Point(component.width / 2, component.height))
-    }
+    private fun createBalloonPopup(message: String, messageType: MessageType, duration: Long) =
+        JBPopupFactory.getInstance()
+            .createHtmlTextBalloonBuilder(message, messageType, null)
+            .setFadeoutTime(duration)
+            .createBalloon()
 
     private fun isGitEnabled(): Boolean {
         return ProjectLevelVcsManager.getInstance(project).checkVcsIsActive("Git")
@@ -70,10 +88,14 @@ internal class CodeOwnersCommitAction : AnAction() {
 
     private fun populateCodeOwnersMap(): HashMap<String, MutableList<VirtualFile>> {
         val codeOwnerMap: HashMap<String, MutableList<VirtualFile>> = hashMapOf()
+        isCodeownerFileEdited = false
 
         val fileChanges = ChangeListManager.getInstance(project).defaultChangeList.changes
         fileChanges.forEach { change ->
             change.virtualFile?.let { file ->
+                if (isCodeownerFileEdited.not() && filesHelper.isCodeOwnersFile(file)) {
+                    isCodeownerFileEdited = true
+                }
                 val codeOwnerRule = codeOwnerService.getCodeOwners(ModuleManager.getInstance(project), file)
 
                 codeOwnerRule?.owners?.forEach { owner ->
