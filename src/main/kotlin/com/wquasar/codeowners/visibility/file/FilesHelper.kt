@@ -12,6 +12,6 @@ internal interface FilesHelper {
     fun isCodeOwnersFile(file: VirtualFile?): Boolean
     fun readLines(file: File): List<String>
     fun getColumnIndexForCodeOwner(file: File, lineNumber: Int, codeOwnerLabel: String): Int
-    fun openFile(project: Project, file: VirtualFile, lineNumber: Int = 0, columnIndex: Int = 0)
+    fun openFile(project: Project, file: VirtualFile, lineNumber: Int = -1, columnIndex: Int = -1)
     fun getTruncatedFileName(file: VirtualFile): String
 }
