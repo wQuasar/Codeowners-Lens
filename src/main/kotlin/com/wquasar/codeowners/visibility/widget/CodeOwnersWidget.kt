@@ -9,6 +9,7 @@ import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.PopupStep
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep
+import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
@@ -117,6 +118,8 @@ internal class CodeOwnersWidget(
     }
 
     override fun getPresentation() = this
+
+    override fun getIcon() = IconLoader.getIcon("/icons/codeowner_icon.svg", CodeOwnersWidget::class.java)
 
     private fun getCurrentCodeOwnerRule(): CodeOwnerRule? {
         val file = currentOrSelectedFile ?: return null

@@ -31,7 +31,7 @@
     <actions>
         <action id="com.wquasar.codeowners.visibility.commit.CodeOwnersCommitAction"
                 class="com.wquasar.codeowners.visibility.commit.CodeOwnersCommitAction"
-                icon="/icons/pluginIcon.svg"
+                icon="/icons/codeowner_icon.svg"
                 text="See Codeowners">
             <add-to-group group-id="Vcs.MessageActionGroup" anchor="last"/>
         </action>
