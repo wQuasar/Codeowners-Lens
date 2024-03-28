@@ -8,7 +8,7 @@
     <name>Codeowners Visibility</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor email="shshvsrswt@gmail.com" url="https://www.yourcompany.com">Shaishav Saraswat</vendor>
+    <vendor email="shshvsrswt@gmail.com" url="https://www.mycompany.com">Shaishav Saraswat</vendor>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
@@ -25,12 +25,12 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <statusBarWidgetFactory implementation="com.wquasar.codeowners.visibility.widget.CodeOwnersWidgetFactory"
-                                id="com.wquasar.codeowners.visibility.widget.CodeOwnersWidget"/>
+        <statusBarWidgetFactory implementation="com.wquasar.codeowners.visibility.widget.statusbar.CodeOwnersWidgetFactory"
+                                id="com.wquasar.codeowners.visibility.widget.statusbar.CodeOwnersWidget"/>
     </extensions>
     <actions>
-        <action id="com.wquasar.codeowners.visibility.commit.CodeOwnersCommitAction"
-                class="com.wquasar.codeowners.visibility.commit.CodeOwnersCommitAction"
+        <action id="com.wquasar.codeowners.visibility.action.commit.CodeOwnersCommitAction"
+                class="com.wquasar.codeowners.visibility.action.commit.CodeOwnersCommitAction"
                 icon="/icons/codeowner_icon.svg"
                 text="See Codeowners">
             <add-to-group group-id="Vcs.MessageActionGroup" anchor="last"/>

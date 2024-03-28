@@ -1,19 +1,17 @@
-package com.wquasar.codeowners.visibility.commit
+package com.wquasar.codeowners.visibility.action.commit
 
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
-import com.intellij.openapi.ui.popup.Balloon
-import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.vcs.ProjectLevelVcsManager
+import com.intellij.openapi.vcs.changes.Change
 import com.intellij.openapi.vcs.changes.ChangeListManager
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.ui.awt.RelativePoint
 import com.wquasar.codeowners.visibility.core.CodeOwnerService
 import com.wquasar.codeowners.visibility.di.CodeOwnersComponentProvider
 import com.wquasar.codeowners.visibility.file.FilesHelper
-import java.awt.Point
+import com.wquasar.codeowners.visibility.ui.BalloonPopupHelper
 import java.awt.event.MouseEvent
 import javax.inject.Inject
 import javax.swing.JComponent
@@ -24,11 +22,22 @@ internal class CodeOwnersCommitAction : AnAction() {
         CodeOwnersComponentProvider.component.inject(this)
     }
 
+    internal sealed interface CodeOwnerState {
+        data object NoFilesInDefaultChangelist : CodeOwnerState
+        data object NoCodeownerFileFound : CodeOwnerState
+        data class FilesWithCodeOwnersEdited(
+            val codeOwnersMap: HashMap<String, MutableList<VirtualFile>>,
+        ) : CodeOwnerState
+    }
+
     @Inject
     lateinit var codeOwnerService: CodeOwnerService
 
     @Inject
     lateinit var filesHelper: FilesHelper
+
+    @Inject
+    lateinit var balloonPopupHelper: BalloonPopupHelper
 
     private lateinit var project: Project
     private var isCodeownerFileEdited = false
@@ -43,54 +52,65 @@ internal class CodeOwnersCommitAction : AnAction() {
     }
 
     override fun actionPerformed(actionEvent: AnActionEvent) {
-        val codeOwnersMap = populateCodeOwnersMap()
-        if (codeOwnersMap.isEmpty()) {
-            createAndShowEmptyCodeownersPopup(actionEvent)
-        } else {
-            createAndShowCodeownersPopup(codeOwnersMap, actionEvent)
-            createAndShowCodeownersEditedPopupIfNeeded(actionEvent)
+        val codeOwnerState = getCodeOwnerActionState()
+        when (codeOwnerState) {
+            is CodeOwnerState.NoFilesInDefaultChangelist -> createAndShowEmptyChangelistPopup(actionEvent)
+            is CodeOwnerState.NoCodeownerFileFound -> createAndShowEmptyCodeownersPopup(actionEvent)
+            is CodeOwnerState.FilesWithCodeOwnersEdited -> {
+                createAndShowCodeownersPopup(codeOwnerState.codeOwnersMap, actionEvent)
+                createAndShowCodeownersEditedPopupIfNeeded(actionEvent)
+            }
         }
     }
 
+    private fun getCodeOwnerActionState(): CodeOwnerState {
+        val fileChanges = ChangeListManager.getInstance(project).defaultChangeList.changes
+        if (fileChanges.isEmpty()) {
+            return CodeOwnerState.NoFilesInDefaultChangelist
+        }
+
+        val codeOwnerMap = populateCodeOwnersMap(fileChanges)
+        if (codeOwnerMap.isEmpty()) {
+            return CodeOwnerState.NoCodeownerFileFound
+        }
+
+        return CodeOwnerState.FilesWithCodeOwnersEdited(codeOwnerMap)
+    }
+
+
     private fun createAndShowCodeownersEditedPopupIfNeeded(actionEvent: AnActionEvent) {
         if (isCodeownerFileEdited) {
-            val component = actionEvent.inputEvent.component as? JComponent ?: return
-            val displayPoint = RelativePoint(component, Point(component.width / 2, 0))
-            val balloon = createBalloonPopup(
+            balloonPopupHelper.createAndShowBalloonPopupAboveComponent(
+                actionEvent = actionEvent,
                 message = "Codeowners file is edited. Codeowner info may be incorrect.",
                 messageType = MessageType.WARNING,
                 duration = 8000,
             )
-            balloon.show(displayPoint, Balloon.Position.above)
         }
     }
 
-    private fun createAndShowEmptyCodeownersPopup(actionEvent: AnActionEvent) {
-        val component = actionEvent.inputEvent.component as? JComponent ?: return
-        val displayPoint = RelativePoint(component, Point(component.width / 2, component.height))
-        val balloon = createBalloonPopup(
-            message = "No code owners found",
-            messageType = MessageType.INFO,
-            duration = 5000,
+    private fun createAndShowEmptyChangelistPopup(actionEvent: AnActionEvent) {
+        balloonPopupHelper.createAndShowBalloonPopupAboveComponent(
+            actionEvent = actionEvent,
+            message = "No files found in default changelist.",
         )
-        balloon.show(displayPoint, Balloon.Position.below)
     }
 
-    private fun createBalloonPopup(message: String, messageType: MessageType, duration: Long) =
-        JBPopupFactory.getInstance()
-            .createHtmlTextBalloonBuilder(message, messageType, null)
-            .setFadeoutTime(duration)
-            .createBalloon()
+    private fun createAndShowEmptyCodeownersPopup(actionEvent: AnActionEvent) {
+        balloonPopupHelper.createAndShowBalloonPopupAboveComponent(
+            actionEvent = actionEvent,
+            message = "No codeowners file found for files in default changelist.",
+        )
+    }
 
     private fun isGitEnabled(): Boolean {
         return ProjectLevelVcsManager.getInstance(project).checkVcsIsActive("Git")
     }
 
-    private fun populateCodeOwnersMap(): HashMap<String, MutableList<VirtualFile>> {
+    private fun populateCodeOwnersMap(fileChanges: MutableCollection<Change>): HashMap<String, MutableList<VirtualFile>> {
         val codeOwnerMap: HashMap<String, MutableList<VirtualFile>> = hashMapOf()
         isCodeownerFileEdited = false
 
-        val fileChanges = ChangeListManager.getInstance(project).defaultChangeList.changes
         fileChanges.forEach { change ->
             change.virtualFile?.let { file ->
                 if (isCodeownerFileEdited.not() && filesHelper.isCodeOwnersFile(file)) {

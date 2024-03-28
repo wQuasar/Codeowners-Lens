@@ -1,4 +1,4 @@
-package com.wquasar.codeowners.visibility.widget
+package com.wquasar.codeowners.visibility.widget.statusbar
 
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
@@ -9,7 +9,6 @@ import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.PopupStep
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep
-import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
@@ -26,14 +25,14 @@ import com.wquasar.codeowners.visibility.file.FilesHelper
 import javax.swing.SwingConstants
 
 internal class CodeOwnersWidget(
-    currentProject: Project,
+    private val currentProject: Project,
     private val codeOwnerService: CodeOwnerService,
     private val filesHelper: FilesHelper,
 ) : EditorBasedWidget(currentProject), StatusBarWidget.MultipleTextValuesPresentation,
     RefactoringEventListener, FileEditorManagerListener {
 
     companion object {
-        const val ID = "com.wquasar.codeowners.visibility.widget.CodeOwnersWidget"
+        const val ID = "com.wquasar.codeowners.visibility.widget.statusbar.CodeOwnersWidget"
         const val EMPTY_OWNER = "¯\\_(ツ)_/¯"
     }
 
@@ -61,7 +60,7 @@ internal class CodeOwnersWidget(
     override fun getSelectedValue(): String {
         if (currentOrSelectedFile == null) return ""
 
-        currentFileCodeOwnerRule = getCurrentCodeOwnerRule()
+        currentFileCodeOwnerRule = getCurrentCodeOwnerRule() ?: return ""
         val owners = currentFileCodeOwnerRule?.owners ?: return EMPTY_OWNER
         return when {
             owners.isEmpty() -> EMPTY_OWNER
@@ -71,8 +70,13 @@ internal class CodeOwnersWidget(
     }
 
     override fun install(statusBar: StatusBar) {
-        if (statusBar.project == project) {
-            val baseDirPath = filesHelper.getBaseDir(ModuleManager.getInstance(project), currentOrSelectedFile)
+        if (statusBar.project == currentProject) {
+            if (null != currentFileCodeOwnerRule) {
+                super.install(statusBar)
+                return
+            }
+
+            val baseDirPath = filesHelper.getBaseDir(ModuleManager.getInstance(currentProject), currentOrSelectedFile)
             val codeOwnersFile = baseDirPath?.let { filesHelper.findCodeOwnersFile(it) }
 
             if (codeOwnersFile != null) {
@@ -111,23 +115,29 @@ internal class CodeOwnersWidget(
     }
 
     override fun getTooltipText(): String {
-        return when (currentFileCodeOwnerRule?.owners?.size) {
-            0 -> "No codeowners found"
-            else -> "Click to show in CODEOWNERS"
-        }
+        val noCodeOwnersFoundMessage = "No codeowners found"
+        return currentFileCodeOwnerRule?.owners?.size?.let {
+            when (it) {
+                0 -> noCodeOwnersFoundMessage
+                else -> "Click to show in CODEOWNERS"
+            }
+        } ?: noCodeOwnersFoundMessage
     }
 
     override fun getPresentation() = this
 
-    override fun getIcon() = IconLoader.getIcon("/icons/codeowner_icon.svg", CodeOwnersWidget::class.java)
-
     private fun getCurrentCodeOwnerRule(): CodeOwnerRule? {
+        if (currentOrSelectedFile == null) {
+            update(getSelectedFile())
+            return null
+        }
         val file = currentOrSelectedFile ?: return null
         return codeOwnerService.getCodeOwners(ModuleManager.getInstance(project), file)
     }
 
     private fun update(file: VirtualFile?) {
-        currentOrSelectedFile = file ?: getSelectedFile()
+        currentOrSelectedFile = file
+        currentFileCodeOwnerRule = null
         myStatusBar?.updateWidget(ID())
     }
 
