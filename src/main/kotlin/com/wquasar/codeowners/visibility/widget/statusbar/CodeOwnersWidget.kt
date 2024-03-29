@@ -3,12 +3,8 @@ package com.wquasar.codeowners.visibility.widget.statusbar
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopup
-import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.openapi.ui.popup.PopupStep
-import com.intellij.openapi.ui.popup.util.BaseListPopupStep
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
@@ -19,126 +15,45 @@ import com.intellij.openapi.wm.impl.status.EditorBasedWidget
 import com.intellij.refactoring.listeners.RefactoringEventData
 import com.intellij.refactoring.listeners.RefactoringEventListener
 import com.intellij.util.messages.MessageBusConnection
-import com.wquasar.codeowners.visibility.core.CodeOwnerRule
-import com.wquasar.codeowners.visibility.core.CodeOwnerService
-import com.wquasar.codeowners.visibility.file.FilesHelper
-import javax.swing.SwingConstants
 
 internal class CodeOwnersWidget(
-    private val currentProject: Project,
-    private val codeOwnerService: CodeOwnerService,
-    private val filesHelper: FilesHelper,
+    currentProject: Project,
+    private val presenter: CodeOwnersWidgetPresenter
 ) : EditorBasedWidget(currentProject), StatusBarWidget.MultipleTextValuesPresentation,
-    RefactoringEventListener, FileEditorManagerListener {
-
-    companion object {
-        const val ID = "com.wquasar.codeowners.visibility.widget.statusbar.CodeOwnersWidget"
-        const val EMPTY_OWNER = "¯\\_(ツ)_/¯"
-    }
+    RefactoringEventListener, FileEditorManagerListener, CodeOwnersWidgetView {
 
     private val connection: MessageBusConnection = currentProject.messageBus.connect(this)
 
     init {
+        presenter.view = this
         connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, this)
         connection.subscribe(VirtualFileManager.VFS_CHANGES, object : BulkFileListener {
             override fun after(events: MutableList<out VFileEvent>) {
-                for (event in events) {
-                    if (filesHelper.isCodeOwnersFile(event.file)) {
-                        codeOwnerService.refreshCodeOwnerRules(ModuleManager.getInstance(project), event.file)
-                        break
-                    }
-                }
+                presenter.updateCodeOwnerServiceIfNeeded(events)
             }
         })
     }
 
-    private var currentOrSelectedFile: VirtualFile? = null
-    private var currentFileCodeOwnerRule: CodeOwnerRule? = null
+    override fun ID() = presenter.getID()
 
-    override fun ID() = ID
-
-    override fun getSelectedValue(): String {
-        if (currentOrSelectedFile == null) return ""
-
-        currentFileCodeOwnerRule = getCurrentCodeOwnerRule() ?: return ""
-        val owners = currentFileCodeOwnerRule?.owners ?: return EMPTY_OWNER
-        return when {
-            owners.isEmpty() -> EMPTY_OWNER
-            owners.size == 1 -> owners.first()
-            else -> "${owners.first()} & ${owners.size - 1} more"
-        }
-    }
+    override fun getSelectedValue(): String = presenter.getSelectedValue()
 
     override fun install(statusBar: StatusBar) {
-        if (statusBar.project == currentProject) {
-            if (null != currentFileCodeOwnerRule) {
-                super.install(statusBar)
-                return
-            }
-
-            val baseDirPath = filesHelper.getBaseDir(ModuleManager.getInstance(currentProject), currentOrSelectedFile)
-            val codeOwnersFile = baseDirPath?.let { filesHelper.findCodeOwnersFile(it) }
-
-            if (codeOwnersFile != null) {
-                super.install(statusBar)
-            }
+        if (presenter.shouldInstall(statusBar)) {
+            super.install(statusBar)
         }
     }
 
-    override fun getPopup(): JBPopup? {
-        val codeOwnerRule = currentFileCodeOwnerRule ?: return null
-        val owners = codeOwnerRule.owners
-        if (owners.size == 1) {
-            goToOwner(codeOwnerRule.lineNumber, owners.first())
-            return null
-        }
-
-        val popup = JBPopupFactory.getInstance().createListPopup(
-            object : BaseListPopupStep<String>("", owners) {
-                override fun onChosen(selectedValue: String, finalChoice: Boolean): PopupStep<*>? {
-                    goToOwner(codeOwnerRule.lineNumber, selectedValue)
-                    return super.onChosen(selectedValue, finalChoice)
-                }
-            }
-        )
-        popup.setAdText("All codeowners", SwingConstants.CENTER)
-        return popup
-    }
-
-    private fun goToOwner(lineNumber: Int, codeOwnerLabel: String) {
-        val baseDirPath = filesHelper.getBaseDir(ModuleManager.getInstance(project), currentOrSelectedFile) ?: return
-        val codeOwnerFile = filesHelper.findCodeOwnersFile(baseDirPath) ?: return
-
-        val vf = codeOwnerFile.toPath().let { VirtualFileManager.getInstance().findFileByNioPath(it) } ?: return
-        val columnIndex = filesHelper.getColumnIndexForCodeOwner(codeOwnerFile, lineNumber, codeOwnerLabel)
-        filesHelper.openFile(project, vf, lineNumber, columnIndex)
-    }
+    override fun getPopup(): JBPopup? = presenter.getPopup()
 
     override fun getTooltipText(): String {
-        val noCodeOwnersFoundMessage = "No codeowners found"
-        return currentFileCodeOwnerRule?.owners?.size?.let {
-            when (it) {
-                0 -> noCodeOwnersFoundMessage
-                else -> "Click to show in CODEOWNERS"
-            }
-        } ?: noCodeOwnersFoundMessage
+        return presenter.getTooltipText()
     }
 
     override fun getPresentation() = this
 
-    private fun getCurrentCodeOwnerRule(): CodeOwnerRule? {
-        if (currentOrSelectedFile == null) {
-            update(getSelectedFile())
-            return null
-        }
-        val file = currentOrSelectedFile ?: return null
-        return codeOwnerService.getCodeOwners(ModuleManager.getInstance(project), file)
-    }
-
     private fun update(file: VirtualFile?) {
-        currentOrSelectedFile = file
-        currentFileCodeOwnerRule = null
-        myStatusBar?.updateWidget(ID())
+        presenter.updateState(file)
     }
 
     override fun selectionChanged(event: FileEditorManagerEvent) = update(event.newFile)
@@ -162,6 +77,12 @@ internal class CodeOwnersWidget(
     override fun undoRefactoring(p0: String) {
         update(null)
     }
+
+    override fun updateWidget() {
+        myStatusBar?.updateWidget(ID())
+    }
+
+    override fun getSelectedFile(): VirtualFile? = getSelectedFile()
 
     override fun dispose() {
         super.dispose()

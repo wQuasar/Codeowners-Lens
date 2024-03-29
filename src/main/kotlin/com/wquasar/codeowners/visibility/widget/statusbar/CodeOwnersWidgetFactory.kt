@@ -20,9 +20,12 @@ internal class CodeOwnersWidgetFactory : StatusBarWidgetFactory {
     @Inject
     lateinit var filesHelper: FilesHelper
 
-    override fun getId() = CodeOwnersWidget.ID
+    private fun createPresenter(project: Project) = CodeOwnersWidgetPresenter(project, codeOwnerService, filesHelper)
+
+    override fun getId() = CodeOwnersWidgetPresenter.ID
 
     override fun getDisplayName() = "Code Owners"
 
-    override fun createWidget(project: Project) = CodeOwnersWidget(project, codeOwnerService, filesHelper)
+    override fun createWidget(project: Project) =
+        CodeOwnersWidget(project, createPresenter(project))
 }
