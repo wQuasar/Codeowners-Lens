@@ -1,6 +1,5 @@
 package com.wquasar.codeowners.visibility.widget.statusbar
 
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -56,7 +55,7 @@ internal class CodeOwnersWidgetPresenter(
         }
 
         val file = currentOrSelectedFile ?: return null
-        return codeOwnerService.getCodeOwners(ModuleManager.getInstance(project), file)
+        return codeOwnerService.getCodeOwners(project, file)
     }
 
     fun getTooltipText(): String {
@@ -82,14 +81,14 @@ internal class CodeOwnersWidgetPresenter(
         val codeOwnerRule = currentFileCodeOwnerRule ?: return null
         val owners = codeOwnerRule.owners
         if (owners.size == 1) {
-            goToOwner(codeOwnerRule.lineNumber, owners.first())
+            goToOwner(codeOwnerRule, owners.first())
             return null
         }
 
         val popup = JBPopupFactory.getInstance().createListPopup(
             object : BaseListPopupStep<String>("", owners) {
                 override fun onChosen(selectedValue: String, finalChoice: Boolean): PopupStep<*>? {
-                    goToOwner(codeOwnerRule.lineNumber, selectedValue)
+                    goToOwner(codeOwnerRule, selectedValue)
                     return super.onChosen(selectedValue, finalChoice)
                 }
             }
@@ -98,20 +97,20 @@ internal class CodeOwnersWidgetPresenter(
         return popup
     }
 
-    private fun goToOwner(lineNumber: Int, codeOwnerLabel: String) {
+    private fun goToOwner(codeOwnerRule: CodeOwnerRule, codeOwnerLabel: String) {
         val codeOwnerString = codeOwnerService.getTrueCodeOwner(codeOwnerLabel)
-        val baseDirPath = filesHelper.getBaseDir(ModuleManager.getInstance(project), currentOrSelectedFile) ?: return
-        val codeOwnerFile = filesHelper.findCodeOwnersFile(baseDirPath) ?: return
+        val codeOwnerFile = codeOwnerService.getCodeOwnerFileForRule(codeOwnerRule) ?: return
 
         val vf = codeOwnerFile.toPath().let { VirtualFileManager.getInstance().findFileByNioPath(it) } ?: return
-        val columnIndex = filesHelper.getColumnIndexForCodeOwner(codeOwnerFile, lineNumber, codeOwnerString)
-        filesHelper.openFile(project, vf, lineNumber, columnIndex)
+        val columnIndex =
+            filesHelper.getColumnIndexForCodeOwner(codeOwnerFile, codeOwnerRule.lineNumber, codeOwnerString)
+        filesHelper.openFile(project, vf, codeOwnerRule.lineNumber, columnIndex)
     }
 
     fun updateCodeOwnerServiceIfNeeded(events: MutableList<out VFileEvent>) {
         for (event in events) {
             if (filesHelper.isCodeOwnersFile(event.file)) {
-                codeOwnerService.refreshCodeOwnerRules(ModuleManager.getInstance(project), event.file)
+                codeOwnerService.refreshCodeOwnerRules(project)
                 break
             }
         }

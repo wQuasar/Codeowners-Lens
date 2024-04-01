@@ -1,10 +1,12 @@
 package com.wquasar.codeowners.visibility.core
 
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.wquasar.codeowners.visibility.file.FilesHelper
 import com.wquasar.codeowners.visibility.glob.RuleGlob
 import com.wquasar.codeowners.visibility.glob.RuleGlobMatcher
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,7 +16,7 @@ internal class CodeOwnerService @Inject constructor(
     private val filesHelper: FilesHelper,
 ) {
 
-    private val codeOwnerRuleGlobs: LinkedHashSet<RuleGlob> = linkedSetOf()
+    private val codeOwnerRuleGlobsMap: LinkedHashMap<File, LinkedHashSet<RuleGlob>> = linkedMapOf()
     private var commonCodeOwnerPrefix = ""
 
     companion object {
@@ -26,15 +28,17 @@ internal class CodeOwnerService @Inject constructor(
         )
     }
 
-    fun getCodeOwners(moduleManager: ModuleManager, file: VirtualFile): CodeOwnerRule? {
-        if (codeOwnerRuleGlobs.isEmpty()) {
-            updateCodeOwnerRules(moduleManager, file)
+    fun getCodeOwners(project: Project, file: VirtualFile): CodeOwnerRule? {
+        if (codeOwnerRuleGlobsMap.isEmpty()) {
+            updateCodeOwnerRules(project.basePath)
         }
 
         val codeOwnerRule = matchCodeOwnerRuleForFile(file)
 
         return if (null == codeOwnerRule) {
-            updateCodeOwnerRules(moduleManager, file)
+            // try to read codeowner file in module's root dir
+            val baseDirPathForFile = filesHelper.getBaseDir(ModuleManager.getInstance(project), file)
+            updateCodeOwnerRules(baseDirPathForFile)
             matchCodeOwnerRuleForFile(file)
         } else {
             codeOwnerRule
@@ -45,14 +49,13 @@ internal class CodeOwnerService @Inject constructor(
         return commonCodeOwnerPrefix + codeOwnerLabel
     }
 
-    private fun matchCodeOwnerRuleForFile(
-        file: VirtualFile
-    ) = codeOwnerRuleGlobs.findLast {
-        ruleGlobMatcher.matches(it, file.path)
-    }?.codeOwnerRule
+    private fun matchCodeOwnerRuleForFile(file: VirtualFile): CodeOwnerRule? =
+        codeOwnerRuleGlobsMap.values.flatten().lastOrNull {
+            ruleGlobMatcher.matches(it, file.path)
+        }?.codeOwnerRule
 
-    private fun updateCodeOwnerRules(moduleManager: ModuleManager, file: VirtualFile?) {
-        val baseDirPath = filesHelper.getBaseDir(moduleManager, file) ?: return
+    private fun updateCodeOwnerRules(baseDirPath: String?) {
+        baseDirPath ?: return
         val codeOwnerFile = filesHelper.findCodeOwnersFile(baseDirPath) ?: return
 
         val codeOwnerRules = codeOwnerFile
@@ -76,8 +79,10 @@ internal class CodeOwnerService @Inject constructor(
             codeOwnerRules
         }
 
+        val codeOwnerRulesSet = codeOwnerRuleGlobsMap.getOrPut(codeOwnerFile) { linkedSetOf() }
+
         for (rule in updatedCodeOwnerRules) {
-            codeOwnerRuleGlobs.add(RuleGlob(rule, baseDirPath))
+            codeOwnerRulesSet.add(RuleGlob(rule, baseDirPath))
         }
     }
 
@@ -88,8 +93,15 @@ internal class CodeOwnerService @Inject constructor(
         return if (lastSlashIndex != -1) commonPrefix.substring(0, lastSlashIndex + 1) else ""
     }
 
-    fun refreshCodeOwnerRules(moduleManager: ModuleManager, file: VirtualFile?) {
-        codeOwnerRuleGlobs.clear()
-        updateCodeOwnerRules(moduleManager, file)
+    fun refreshCodeOwnerRules(project: Project) {
+        codeOwnerRuleGlobsMap.clear()
+        updateCodeOwnerRules(project.basePath)
+    }
+
+    fun getCodeOwnerFileForRule(codeOwnerRule: CodeOwnerRule): File? {
+        return codeOwnerRuleGlobsMap
+            .entries
+            .firstOrNull { (_, ruleGlobs) -> ruleGlobs.any { it.codeOwnerRule == codeOwnerRule } }
+            ?.key
     }
 }

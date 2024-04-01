@@ -37,7 +37,7 @@ internal class CodeOwnersCommitActionPresenter @Inject constructor(
         ChangeListManager.getInstance(project).defaultChangeList.changes
 
     private fun getCodeOwnerForFile(file: VirtualFile): CodeOwnerRule? {
-        return codeOwnerService.getCodeOwners(ModuleManager.getInstance(project), file)
+        return codeOwnerService.getCodeOwners(project, file)
     }
 
     fun handleAction(actionEvent: AnActionEvent) {
