@@ -123,7 +123,7 @@ internal class CodeOwnersCommitActionPresenter @Inject constructor(
             codeOwnerMap.keys.forEach { owner ->
                 val modifiedOwnedFiles = codeOwnerMap[owner] ?: return@forEach
 
-                val fileActionGroup = DefaultActionGroup("$owner [${modifiedOwnedFiles.size}]", true).apply {
+                val fileActionGroup = DefaultActionGroup("$owner \t[${modifiedOwnedFiles.size}]", true).apply {
                     modifiedOwnedFiles.forEach { file ->
                         addPopupItemAction(filesHelper.getTruncatedFileName(file), file)
                     }

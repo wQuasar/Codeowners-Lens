@@ -44,7 +44,8 @@ internal class CodeOwnersWidgetPresenter(
         return when {
             owners.isEmpty() -> EMPTY_OWNER
             owners.size == 1 -> owners.first()
-            else -> "${owners.first()} & ${owners.size - 1} more"
+            owners.size == 2 -> "${owners.first()} & ${owners.last()}"
+            else -> "${owners.first()}, ${owners[1]} & ${owners.size - 2} more"
         }
     }
 
@@ -103,7 +104,8 @@ internal class CodeOwnersWidgetPresenter(
 
         val vf = codeOwnerFile.toPath().let { VirtualFileManager.getInstance().findFileByNioPath(it) } ?: return
         val columnIndex =
-            filesHelper.getColumnIndexForCodeOwner(codeOwnerFile, codeOwnerRule.lineNumber, codeOwnerString)
+            filesHelper.getColumnIndexForCodeOwner(codeOwnerFile, codeOwnerRule.lineNumber, codeOwnerString) +
+                    (codeOwnerString.length - codeOwnerLabel.length)
         filesHelper.openFile(project, vf, codeOwnerRule.lineNumber, columnIndex)
     }
 
