@@ -28,7 +28,7 @@ internal data class RuleGlob(
             }
             // collapse **/** (if any)
             .replace(Regex("(/[*][*]){2,}/"), "/**/").replace("**/**/", "**/").replace("/**/**", "/**")
-        val canonicalBaseDir = File(baseDir).systemIndependentPath
+        val canonicalBaseDir = File(baseDir).systemIndependentPath + "/**"
         val expectedPath = slashJoin(slash(canonicalBaseDir), pattern)
         segments = expectedPath.split('/').map {
             if (it == "**") Segment(Regex(".*"), true)

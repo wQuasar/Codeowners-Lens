@@ -16,9 +16,10 @@ internal class RuleGlobTest {
     fun `Glob init creates correct segments`() {
         val rule = CodeOwnerRule("pattern", listOf("owner"), 1)
         val ruleGlob = RuleGlob(rule, "baseDir")
-        assertEquals(3, ruleGlob.segments.size)
+        assertEquals(4, ruleGlob.segments.size)
         assertFalse(ruleGlob.segments[0].optional)
-        assertFalse(ruleGlob.segments[1].optional)
-        assertTrue(ruleGlob.segments[2].optional)
+        assertTrue(ruleGlob.segments[1].optional)
+        assertFalse(ruleGlob.segments[2].optional)
+        assertTrue(ruleGlob.segments[3].optional)
     }
 }
