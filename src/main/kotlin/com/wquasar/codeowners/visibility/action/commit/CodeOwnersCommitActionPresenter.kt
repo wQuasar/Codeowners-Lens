@@ -65,8 +65,8 @@ internal class CodeOwnersCommitActionPresenter @Inject constructor(
         return FilesWithCodeOwnersEdited(codeOwnerMap)
     }
 
-    private fun populateCodeOwnersMap(fileChanges: MutableCollection<Change>): HashMap<String, MutableList<VirtualFile>> {
-        val codeOwnerMap: HashMap<String, MutableList<VirtualFile>> = hashMapOf()
+    private fun populateCodeOwnersMap(fileChanges: MutableCollection<Change>): HashMap<List<String>, MutableList<VirtualFile>> {
+        val codeOwnerMap: HashMap<List<String>, MutableList<VirtualFile>> = hashMapOf()
         isCodeownerFileEdited = false
 
         fileChanges.forEach { change ->
@@ -76,8 +76,8 @@ internal class CodeOwnersCommitActionPresenter @Inject constructor(
                 }
                 val codeOwnerRule = getCodeOwnerForFile(file)
 
-                codeOwnerRule?.owners?.forEach { owner ->
-                    codeOwnerMap[owner] = codeOwnerMap.getOrPut(owner) { mutableListOf() }.apply {
+                codeOwnerRule?.owners?.let {
+                    codeOwnerMap.getOrPut(it) { mutableListOf() }.apply {
                         add(file)
                     }
                 }
@@ -112,7 +112,7 @@ internal class CodeOwnersCommitActionPresenter @Inject constructor(
     }
 
     private fun createAndShowCodeownersPopup(
-        codeOwnerMap: HashMap<String, MutableList<VirtualFile>>,
+        codeOwnerMap: HashMap<List<String>, MutableList<VirtualFile>>,
         actionEvent: AnActionEvent,
     ) {
         val mouseEvent = actionEvent.inputEvent as? MouseEvent

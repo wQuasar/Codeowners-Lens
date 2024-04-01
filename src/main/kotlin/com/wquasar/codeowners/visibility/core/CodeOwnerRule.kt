@@ -7,6 +7,6 @@ internal data class CodeOwnerRule(
 ) {
     companion object {
         fun fromCodeOwnerLine(lineNumber: Int, lineInfo: List<String>) =
-            CodeOwnerRule(lineInfo[0], lineInfo.drop(1), lineNumber)
+            CodeOwnerRule(lineInfo[0], lineInfo.drop(1).sorted(), lineNumber)
     }
 }

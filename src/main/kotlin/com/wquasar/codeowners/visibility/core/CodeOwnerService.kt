@@ -15,6 +15,7 @@ internal class CodeOwnerService @Inject constructor(
 ) {
 
     private val codeOwnerRuleGlobs: LinkedHashSet<RuleGlob> = linkedSetOf()
+    private var commonCodeOwnerPrefix = ""
 
     companion object {
         private const val CODEOWNERS_FILE_NAME = "CODEOWNERS"
@@ -40,6 +41,10 @@ internal class CodeOwnerService @Inject constructor(
         }
     }
 
+    fun getTrueCodeOwner(codeOwnerLabel: String): String {
+        return commonCodeOwnerPrefix + codeOwnerLabel
+    }
+
     private fun matchCodeOwnerRuleForFile(
         file: VirtualFile
     ) = codeOwnerRuleGlobs.findLast {
@@ -61,9 +66,26 @@ internal class CodeOwnerService @Inject constructor(
             .filterNotNull()
             .toCollection(LinkedHashSet())
 
-        for (rule in codeOwnerRules) {
+        val commonPredicate = findCommonPredicate(codeOwnerRules)
+        commonCodeOwnerPrefix = commonPredicate
+        val updatedCodeOwnerRules = if (commonPredicate.isNotBlank()) {
+            codeOwnerRules.map { rule ->
+                rule.copy(owners = rule.owners.map { it.removePrefix(commonPredicate) })
+            }
+        } else {
+            codeOwnerRules
+        }
+
+        for (rule in updatedCodeOwnerRules) {
             codeOwnerRuleGlobs.add(RuleGlob(rule, baseDirPath))
         }
+    }
+
+    private fun findCommonPredicate(codeOwnerRules: Set<CodeOwnerRule>): String {
+        val allOwners = codeOwnerRules.flatMap { it.owners }
+        val commonPrefix = allOwners.reduce { acc, owner -> acc.commonPrefixWith(owner) }
+        val lastSlashIndex = commonPrefix.lastIndexOf("/")
+        return if (lastSlashIndex != -1) commonPrefix.substring(0, lastSlashIndex + 1) else ""
     }
 
     fun refreshCodeOwnerRules(moduleManager: ModuleManager, file: VirtualFile?) {

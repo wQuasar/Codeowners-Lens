@@ -61,7 +61,7 @@ internal class CodeOwnersWidgetPresenter(
 
     fun getTooltipText(): String {
         val noCodeOwnersFoundMessage = "No codeowners found"
-        return currentFileCodeOwnerRule?.owners?.size?.let {size ->
+        return currentFileCodeOwnerRule?.owners?.size?.let { size ->
             when {
                 size == 0 -> noCodeOwnersFoundMessage
                 size > 1 -> "Click to show all codeowners"
@@ -99,11 +99,12 @@ internal class CodeOwnersWidgetPresenter(
     }
 
     private fun goToOwner(lineNumber: Int, codeOwnerLabel: String) {
+        val codeOwnerString = codeOwnerService.getTrueCodeOwner(codeOwnerLabel)
         val baseDirPath = filesHelper.getBaseDir(ModuleManager.getInstance(project), currentOrSelectedFile) ?: return
         val codeOwnerFile = filesHelper.findCodeOwnersFile(baseDirPath) ?: return
 
         val vf = codeOwnerFile.toPath().let { VirtualFileManager.getInstance().findFileByNioPath(it) } ?: return
-        val columnIndex = filesHelper.getColumnIndexForCodeOwner(codeOwnerFile, lineNumber, codeOwnerLabel)
+        val columnIndex = filesHelper.getColumnIndexForCodeOwner(codeOwnerFile, lineNumber, codeOwnerString)
         filesHelper.openFile(project, vf, lineNumber, columnIndex)
     }
 

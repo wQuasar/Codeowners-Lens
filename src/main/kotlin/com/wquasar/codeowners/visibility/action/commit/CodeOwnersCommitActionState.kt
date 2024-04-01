@@ -6,6 +6,6 @@ internal interface CodeOwnersCommitActionState {
     data object NoFilesInDefaultChangelist : CodeOwnersCommitActionState
     data object NoCodeownerFileFound : CodeOwnersCommitActionState
     data class FilesWithCodeOwnersEdited(
-        val codeOwnersMap: HashMap<String, MutableList<VirtualFile>>,
+        val codeOwnersMap: HashMap<List<String>, MutableList<VirtualFile>>,
     ) : CodeOwnersCommitActionState
 }
