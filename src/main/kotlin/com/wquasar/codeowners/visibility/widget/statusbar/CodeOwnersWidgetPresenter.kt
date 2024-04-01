@@ -34,19 +34,7 @@ internal class CodeOwnersWidgetPresenter(
     fun getID(): String = ID
 
     fun shouldInstall(statusBar: StatusBar): Boolean {
-        if (statusBar.project == project) {
-            if (null != currentFileCodeOwnerRule) {
-                return true
-            }
-
-            val baseDirPath = filesHelper.getBaseDir(ModuleManager.getInstance(project), currentOrSelectedFile)
-            val codeOwnersFile = baseDirPath?.let { filesHelper.findCodeOwnersFile(it) }
-
-            if (codeOwnersFile != null) {
-                return true
-            }
-        }
-        return false
+        return statusBar.project == project
     }
 
     fun getSelectedValue(): String {
