@@ -1,5 +1,6 @@
 package com.wquasar.codeowners.visibility.core
 
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -7,14 +8,12 @@ import com.wquasar.codeowners.visibility.file.FilesHelper
 import com.wquasar.codeowners.visibility.glob.RuleGlob
 import com.wquasar.codeowners.visibility.glob.RuleGlobMatcher
 import java.io.File
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-internal class CodeOwnerService @Inject constructor(
-    private val ruleGlobMatcher: RuleGlobMatcher,
-    private val filesHelper: FilesHelper,
-) {
+@Service(Service.Level.PROJECT)
+internal class CodeOwnerService {
+
+    private lateinit var ruleGlobMatcher: RuleGlobMatcher
+    private lateinit var filesHelper: FilesHelper
 
     private val codeOwnerRuleGlobsMap: LinkedHashMap<File, LinkedHashSet<RuleGlob>> = linkedMapOf()
     private var commonCodeOwnerPrefix = ""
@@ -26,6 +25,11 @@ internal class CodeOwnerService @Inject constructor(
             "docs/$CODEOWNERS_FILE_NAME",
             ".github/$CODEOWNERS_FILE_NAME",
         )
+    }
+
+    fun init(ruleGlobMatcher: RuleGlobMatcher, filesHelper: FilesHelper) {
+        this.ruleGlobMatcher = ruleGlobMatcher
+        this.filesHelper = filesHelper
     }
 
     fun getCodeOwners(project: Project, file: VirtualFile): CodeOwnerRule? {

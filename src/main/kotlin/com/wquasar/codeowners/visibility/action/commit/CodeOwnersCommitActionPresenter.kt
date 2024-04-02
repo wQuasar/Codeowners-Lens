@@ -4,7 +4,6 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.vcs.ProjectLevelVcsManager
@@ -21,12 +20,12 @@ import javax.inject.Inject
 import javax.swing.JComponent
 
 internal class CodeOwnersCommitActionPresenter @Inject constructor(
-    private val codeOwnerService: CodeOwnerService,
     private val filesHelper: FilesHelper,
     private val balloonPopupHelper: BalloonPopupHelper,
 ) {
 
     lateinit var project: Project
+    lateinit var codeOwnerService: CodeOwnerService
     private var isCodeownerFileEdited = false
 
     fun isGitEnabled(): Boolean {
