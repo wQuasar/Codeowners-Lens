@@ -15,7 +15,7 @@ internal class CodeOwnerService {
     private lateinit var ruleGlobMatcher: RuleGlobMatcher
     private lateinit var filesHelper: FilesHelper
 
-    private val codeOwnerRuleGlobsMap: LinkedHashMap<File, LinkedHashSet<RuleGlob>> = linkedMapOf()
+    private val codeOwnerRuleGlobsMap: LinkedHashMap<CodeOwnerFile, LinkedHashSet<RuleGlob>> = linkedMapOf()
     private var commonCodeOwnerPrefix = ""
 
     companion object {
@@ -25,7 +25,7 @@ internal class CodeOwnerService {
             "docs/$CODEOWNERS_FILE_NAME",
             ".github/$CODEOWNERS_FILE_NAME",
         )
-        const val EMPTY_OWNER = "¯\\__(ツ)__/¯"
+        const val EMPTY_OWNER = "¯\\_(ツ)_/¯"
     }
 
     fun init(ruleGlobMatcher: RuleGlobMatcher, filesHelper: FilesHelper) {
@@ -47,6 +47,38 @@ internal class CodeOwnerService {
             matchCodeOwnerRuleForFile(file)
         } else {
             codeOwnerRule
+        }
+    }
+
+    fun getFileCodeOwnerState(project: Project, file: VirtualFile): FileCodeOwnerState {
+        if (codeOwnerRuleGlobsMap.keys.any { it.baseDirPath == project.basePath }) {
+            val codeOwnerRule = matchCodeOwnerRuleForFile(file)
+            if (null != codeOwnerRule) {
+                return FileCodeOwnerState.RuleFoundInCodeOwnerFile(codeOwnerRule)
+            }
+        } else {
+            updateCodeOwnerRules(project.basePath)
+        }
+
+        val baseDirPathForFile = filesHelper.getBaseDir(ModuleManager.getInstance(project), file)
+        if (codeOwnerRuleGlobsMap.keys.any { it.baseDirPath == baseDirPathForFile }) {
+            val codeOwnerRule = matchCodeOwnerRuleForFile(file)
+            if (null != codeOwnerRule) {
+                return FileCodeOwnerState.RuleFoundInCodeOwnerFile(codeOwnerRule)
+            }
+        } else {
+            updateCodeOwnerRules(baseDirPathForFile)
+        }
+
+        if (codeOwnerRuleGlobsMap.isEmpty()) {
+            return FileCodeOwnerState.NoCodeOwnerFileFound
+        } else {
+            val codeOwnerRule = matchCodeOwnerRuleForFile(file)
+            return if (null != codeOwnerRule) {
+                FileCodeOwnerState.RuleFoundInCodeOwnerFile(codeOwnerRule)
+            } else {
+                FileCodeOwnerState.NoRuleFoundInCodeOwnerFile
+            }
         }
     }
 
@@ -84,7 +116,12 @@ internal class CodeOwnerService {
             codeOwnerRules
         }
 
-        val codeOwnerRulesSet = codeOwnerRuleGlobsMap.getOrPut(codeOwnerFile) { linkedSetOf() }
+        val codeOwnerRulesSet = codeOwnerRuleGlobsMap.getOrPut(
+            CodeOwnerFile(
+                file = codeOwnerFile,
+                baseDirPath = baseDirPath,
+            )
+        ) { linkedSetOf() }
 
         for (rule in updatedCodeOwnerRules) {
             codeOwnerRulesSet.add(RuleGlob(rule, baseDirPath))
@@ -108,5 +145,6 @@ internal class CodeOwnerService {
             .entries
             .firstOrNull { (_, ruleGlobs) -> ruleGlobs.any { it.codeOwnerRule == codeOwnerRule } }
             ?.key
+            ?.file
     }
 }

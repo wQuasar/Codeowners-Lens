@@ -13,12 +13,13 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.wquasar.codeowners.visibility.action.commit.CodeOwnersCommitActionState.*
 import com.wquasar.codeowners.visibility.core.CodeOwnerRule
 import com.wquasar.codeowners.visibility.core.CodeOwnerService
-import com.wquasar.codeowners.visibility.core.CodeOwnerService.Companion.EMPTY_OWNER
 import com.wquasar.codeowners.visibility.file.FilesHelper
 import com.wquasar.codeowners.visibility.ui.BalloonPopupHelper
 import java.awt.event.MouseEvent
 import javax.inject.Inject
 import javax.swing.JComponent
+
+private const val EMPTY_OWNER = "¯\\__(ツ)__/¯"
 
 internal class CodeOwnersCommitActionPresenter @Inject constructor(
     private val filesHelper: FilesHelper,

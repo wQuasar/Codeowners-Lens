@@ -12,6 +12,8 @@ import com.intellij.openapi.wm.StatusBar
 import com.wquasar.codeowners.visibility.core.CodeOwnerRule
 import com.wquasar.codeowners.visibility.core.CodeOwnerService
 import com.wquasar.codeowners.visibility.core.CodeOwnerService.Companion.EMPTY_OWNER
+import com.wquasar.codeowners.visibility.core.FileCodeOwnerState
+import com.wquasar.codeowners.visibility.core.FileCodeOwnerState.*
 import com.wquasar.codeowners.visibility.file.FilesHelper
 import javax.swing.SwingConstants
 
@@ -28,7 +30,7 @@ internal class CodeOwnersWidgetPresenter(
     lateinit var view: CodeOwnersWidgetView
 
     private var currentOrSelectedFile: VirtualFile? = null
-    private var currentFileCodeOwnerRule: CodeOwnerRule? = null
+    private var currentFileRuleOwnerState: FileCodeOwnerState? = null
 
     fun getID(): String = ID
 
@@ -37,49 +39,69 @@ internal class CodeOwnersWidgetPresenter(
     }
 
     fun getSelectedValue(): String {
-        if (currentOrSelectedFile == null) return "<no file>"
+        if (currentOrSelectedFile == null) return ""
 
-        currentFileCodeOwnerRule = getCurrentCodeOwnerRule() ?: return "<no rule>"
-        val owners = currentFileCodeOwnerRule?.owners ?: return EMPTY_OWNER
-        return when {
-            owners.isEmpty() -> EMPTY_OWNER
-            owners.size == 1 -> owners.first()
-            owners.size == 2 -> "${owners.first()} & ${owners.last()}"
-            else -> "${owners.first()}, ${owners[1]} & ${owners.size - 2} more"
+        currentFileRuleOwnerState = getCurrentFileCodeOwnerState()
+        return when (currentFileRuleOwnerState) {
+            NoRuleFoundInCodeOwnerFile -> EMPTY_OWNER
+            is RuleFoundInCodeOwnerFile -> {
+                val owners = currentFileRuleOwnerState?.let {
+                    (it as RuleFoundInCodeOwnerFile).codeOwnerRule.owners
+                } ?: return ""
+                when {
+                    owners.isEmpty() -> EMPTY_OWNER
+                    owners.size == 1 -> owners.first()
+                    owners.size == 2 -> "${owners.first()} & ${owners.last()}"
+                    else -> "${owners.first()}, ${owners[1]} & ${owners.size - 2} more"
+                }
+            }
+
+            NoCodeOwnerFileFound -> ""
+            else -> ""
         }
     }
 
-    private fun getCurrentCodeOwnerRule(): CodeOwnerRule? {
+    private fun getCurrentFileCodeOwnerState(): FileCodeOwnerState? {
         if (currentOrSelectedFile == null) {
             updateState(getSelectedFile())
             return null
         }
-
         val file = currentOrSelectedFile ?: return null
-        return codeOwnerService.getCodeOwners(project, file)
+        return codeOwnerService.getFileCodeOwnerState(project, file)
     }
 
     fun getTooltipText(): String {
-        val noCodeOwnersFoundMessage = "No codeowners found"
-        return currentFileCodeOwnerRule?.owners?.size?.let { size ->
-            when {
-                size == 0 -> noCodeOwnersFoundMessage
-                size > 1 -> "Click to show all codeowners"
-                else -> "Click to show in CODEOWNERS"
+        return when (val fileCodeOwnerState = currentFileRuleOwnerState) {
+            is NoCodeOwnerFileFound -> ""
+            is NoRuleFoundInCodeOwnerFile -> "No codeowners found"
+            is RuleFoundInCodeOwnerFile -> {
+                val owners = fileCodeOwnerState.codeOwnerRule.owners
+                when {
+                    owners.isEmpty() -> "No codeowners found"
+                    owners.size == 1 -> "Click to show in CODEOWNERS"
+                    else -> "Click to show all codeowners"
+                }
             }
-        } ?: noCodeOwnersFoundMessage
+
+            else -> ""
+        }
     }
 
     fun updateState(file: VirtualFile?) {
         currentOrSelectedFile = file
-        currentFileCodeOwnerRule = null
+        currentFileRuleOwnerState = null
         view.updateWidget()
     }
 
     private fun getSelectedFile(): VirtualFile? = view.getSelectedFile()
 
     fun getPopup(): JBPopup? {
-        val codeOwnerRule = currentFileCodeOwnerRule ?: return null
+        val fileCodeOwnerState = currentFileRuleOwnerState
+        if (fileCodeOwnerState !is RuleFoundInCodeOwnerFile) {
+            return null
+        }
+
+        val codeOwnerRule = fileCodeOwnerState.codeOwnerRule
         val owners = codeOwnerRule.owners
         if (owners.size == 1) {
             goToOwner(codeOwnerRule, owners.first())
