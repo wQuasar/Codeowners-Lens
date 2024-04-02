@@ -11,6 +11,7 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.wm.StatusBar
 import com.wquasar.codeowners.visibility.core.CodeOwnerRule
 import com.wquasar.codeowners.visibility.core.CodeOwnerService
+import com.wquasar.codeowners.visibility.core.CodeOwnerService.Companion.EMPTY_OWNER
 import com.wquasar.codeowners.visibility.file.FilesHelper
 import javax.swing.SwingConstants
 
@@ -22,7 +23,6 @@ internal class CodeOwnersWidgetPresenter(
 
     companion object {
         const val ID = "com.wquasar.codeowners.visibility.widget.statusbar.CodeOwnersWidget"
-        const val EMPTY_OWNER = "¯\\_(ツ)_/¯"
     }
 
     lateinit var view: CodeOwnersWidgetView

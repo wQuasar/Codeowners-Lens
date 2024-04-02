@@ -13,6 +13,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.wquasar.codeowners.visibility.action.commit.CodeOwnersCommitActionState.*
 import com.wquasar.codeowners.visibility.core.CodeOwnerRule
 import com.wquasar.codeowners.visibility.core.CodeOwnerService
+import com.wquasar.codeowners.visibility.core.CodeOwnerService.Companion.EMPTY_OWNER
 import com.wquasar.codeowners.visibility.file.FilesHelper
 import com.wquasar.codeowners.visibility.ui.BalloonPopupHelper
 import java.awt.event.MouseEvent
@@ -75,8 +76,14 @@ internal class CodeOwnersCommitActionPresenter @Inject constructor(
                 }
                 val codeOwnerRule = getCodeOwnerForFile(file)
 
-                codeOwnerRule?.owners?.let {
-                    codeOwnerMap.getOrPut(it) { mutableListOf() }.apply {
+                codeOwnerRule?.let { rule ->
+                    rule.owners.let { owners ->
+                        codeOwnerMap.getOrPut(owners) { mutableListOf() }.apply {
+                            add(file)
+                        }
+                    }
+                } ?: run {
+                    codeOwnerMap.getOrPut(listOf(EMPTY_OWNER)) { mutableListOf() }.apply {
                         add(file)
                     }
                 }
