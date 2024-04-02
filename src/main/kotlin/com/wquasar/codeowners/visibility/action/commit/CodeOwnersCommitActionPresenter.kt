@@ -11,8 +11,8 @@ import com.intellij.openapi.vcs.changes.Change
 import com.intellij.openapi.vcs.changes.ChangeListManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.wquasar.codeowners.visibility.action.commit.CodeOwnersCommitActionState.*
-import com.wquasar.codeowners.visibility.core.CodeOwnerRule
 import com.wquasar.codeowners.visibility.core.CodeOwnerService
+import com.wquasar.codeowners.visibility.core.FileCodeOwnerState
 import com.wquasar.codeowners.visibility.file.FilesHelper
 import com.wquasar.codeowners.visibility.ui.BalloonPopupHelper
 import java.awt.event.MouseEvent
@@ -37,14 +37,10 @@ internal class CodeOwnersCommitActionPresenter @Inject constructor(
     private fun getGitFileChanges(): MutableCollection<Change> =
         ChangeListManager.getInstance(project).defaultChangeList.changes
 
-    private fun getCodeOwnerForFile(file: VirtualFile): CodeOwnerRule? {
-        return codeOwnerService.getCodeOwners(project, file)
-    }
-
     fun handleAction(actionEvent: AnActionEvent) {
         when (val codeOwnerState = getCodeOwnerActionState()) {
             is NoFilesInDefaultChangelist -> createAndShowEmptyChangelistPopup(actionEvent)
-            is NoCodeownerFileFound -> createAndShowEmptyCodeownersPopup(actionEvent)
+            is NoCodeOwnerFileFound -> createAndShowEmptyCodeownersPopup(actionEvent)
             is FilesWithCodeOwnersEdited -> {
                 createAndShowCodeownersPopup(codeOwnerState.codeOwnersMap, actionEvent)
                 createAndShowCodeownersEditedPopupIfNeeded(actionEvent)
@@ -58,39 +54,37 @@ internal class CodeOwnersCommitActionPresenter @Inject constructor(
             return NoFilesInDefaultChangelist
         }
 
-        val codeOwnerMap = populateCodeOwnersMap(fileChanges)
-        if (codeOwnerMap.isEmpty()) {
-            return NoCodeownerFileFound
-        }
-
-        return FilesWithCodeOwnersEdited(codeOwnerMap)
+        return getActionStateForFileChanges(fileChanges)
     }
 
-    private fun populateCodeOwnersMap(fileChanges: MutableCollection<Change>): HashMap<List<String>, MutableList<VirtualFile>> {
+    private fun getActionStateForFileChanges(fileChanges: MutableCollection<Change>): CodeOwnersCommitActionState {
         val codeOwnerMap: HashMap<List<String>, MutableList<VirtualFile>> = hashMapOf()
         isCodeownerFileEdited = false
 
-        fileChanges.forEach { change ->
-            change.virtualFile?.let { file ->
+        fileChanges.mapNotNull { it.virtualFile }
+            .forEach { file ->
                 if (isCodeownerFileEdited.not() && filesHelper.isCodeOwnersFile(file)) {
                     isCodeownerFileEdited = true
                 }
-                val codeOwnerRule = getCodeOwnerForFile(file)
+                val codeOwnerState = codeOwnerService.getFileCodeOwnerState(project, file)
 
-                codeOwnerRule?.let { rule ->
-                    rule.owners.let { owners ->
-                        codeOwnerMap.getOrPut(owners) { mutableListOf() }.apply {
-                            add(file)
-                        }
+                if (codeOwnerState is FileCodeOwnerState.RuleFoundInCodeOwnerFile) {
+                    val owners = codeOwnerState.codeOwnerRule.owners
+                    codeOwnerMap.getOrPut(owners) { mutableListOf() }.apply {
+                        add(file)
                     }
-                } ?: run {
+                } else if (codeOwnerState is FileCodeOwnerState.NoRuleFoundInCodeOwnerFile) {
                     codeOwnerMap.getOrPut(listOf(EMPTY_OWNER)) { mutableListOf() }.apply {
                         add(file)
                     }
                 }
             }
+
+        return if (codeOwnerMap.isEmpty()) {
+            NoCodeOwnerFileFound
+        } else {
+            FilesWithCodeOwnersEdited(codeOwnerMap)
         }
-        return codeOwnerMap
     }
 
     private fun createAndShowCodeownersEditedPopupIfNeeded(actionEvent: AnActionEvent) {
@@ -130,11 +124,12 @@ internal class CodeOwnersCommitActionPresenter @Inject constructor(
             codeOwnerMap.keys.forEach { owner ->
                 val modifiedOwnedFiles = codeOwnerMap[owner] ?: return@forEach
 
-                val fileActionGroup = DefaultActionGroup("$owner \t[${modifiedOwnedFiles.size}]", true).apply {
-                    modifiedOwnedFiles.forEach { file ->
-                        addPopupItemAction(filesHelper.getTruncatedFileName(file), file)
+                val fileActionGroup =
+                    DefaultActionGroup("${owner.joinToString(", ")} \t[${modifiedOwnedFiles.size}]", true).apply {
+                        modifiedOwnedFiles.forEach { file ->
+                            addPopupItemAction(filesHelper.getTruncatedFileName(file), file)
+                        }
                     }
-                }
                 add(fileActionGroup)
             }
         }

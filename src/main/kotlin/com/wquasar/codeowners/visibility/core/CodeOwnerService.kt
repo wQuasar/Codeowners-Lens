@@ -33,23 +33,6 @@ internal class CodeOwnerService {
         this.filesHelper = filesHelper
     }
 
-    fun getCodeOwners(project: Project, file: VirtualFile): CodeOwnerRule? {
-        if (codeOwnerRuleGlobsMap.isEmpty()) {
-            updateCodeOwnerRules(project.basePath)
-        }
-
-        val codeOwnerRule = matchCodeOwnerRuleForFile(file)
-
-        return if (null == codeOwnerRule) {
-            // try to read codeowner file in module's root dir
-            val baseDirPathForFile = filesHelper.getBaseDir(ModuleManager.getInstance(project), file)
-            updateCodeOwnerRules(baseDirPathForFile)
-            matchCodeOwnerRuleForFile(file)
-        } else {
-            codeOwnerRule
-        }
-    }
-
     fun getFileCodeOwnerState(project: Project, file: VirtualFile): FileCodeOwnerState {
         if (codeOwnerRuleGlobsMap.keys.any { it.baseDirPath == project.basePath }) {
             val codeOwnerRule = matchCodeOwnerRuleForFile(file)
