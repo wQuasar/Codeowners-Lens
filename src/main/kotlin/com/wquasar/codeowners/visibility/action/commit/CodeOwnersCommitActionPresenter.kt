@@ -1,9 +1,6 @@
 package com.wquasar.codeowners.visibility.action.commit
 
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.vcs.ProjectLevelVcsManager
@@ -34,30 +31,56 @@ internal class CodeOwnersCommitActionPresenter @Inject constructor(
         return ProjectLevelVcsManager.getInstance(project).checkVcsIsActive("Git")
     }
 
-    private fun getGitFileChanges(): MutableCollection<Change> =
-        ChangeListManager.getInstance(project).defaultChangeList.changes
-
     fun handleAction(actionEvent: AnActionEvent) {
         when (val codeOwnerState = getCodeOwnerActionState()) {
-            is NoFilesInDefaultChangelist -> createAndShowEmptyChangelistPopup(actionEvent)
+            is NoChangesInAnyChangelist -> createAndShowEmptyChangelistPopup(actionEvent)
             is NoCodeOwnerFileFound -> createAndShowEmptyCodeownersPopup(actionEvent)
             is FilesWithCodeOwnersEdited -> {
-                createAndShowCodeownersPopup(codeOwnerState.codeOwnersMap, actionEvent)
+                createAndShowCodeownersPopup(codeOwnerState, actionEvent)
                 createAndShowCodeownersEditedPopupIfNeeded(actionEvent)
             }
         }
     }
 
     private fun getCodeOwnerActionState(): CodeOwnersCommitActionState {
-        val fileChanges = getGitFileChanges()
-        if (fileChanges.isEmpty()) {
-            return NoFilesInDefaultChangelist
+        val changeListManager = ChangeListManager.getInstance(project)
+        if (changeListManager.allChanges.isEmpty()) {
+            return NoChangesInAnyChangelist
         }
 
-        return getActionStateForFileChanges(fileChanges)
+        val currentState = FilesWithCodeOwnersEdited(changeListWithOwnersList = mutableListOf())
+
+        changeListManager.changeLists.forEach { changeList ->
+            val fileChanges = changeList.changes
+            if (fileChanges.isEmpty()) {
+                return@forEach
+            }
+
+            val codeOwnerMap = getCodeOwnerMapForChangelist(fileChanges)
+            if (codeOwnerMap.isNotEmpty()) {
+                val changeListWithOwner = ChangeListWithOwners(
+                    listLabel = changeList.name,
+                    codeOwnersMap = codeOwnerMap,
+                    isDefault = changeList.isDefault,
+                )
+                with(currentState.changeListWithOwnersList) {
+                    if (changeList.isDefault) {
+                        add(0, changeListWithOwner)
+                    } else {
+                        add(this.size, changeListWithOwner)
+                    }
+                }
+            }
+        }
+
+        return if (currentState.changeListWithOwnersList.isEmpty()) {
+            NoCodeOwnerFileFound
+        } else {
+            currentState
+        }
     }
 
-    private fun getActionStateForFileChanges(fileChanges: MutableCollection<Change>): CodeOwnersCommitActionState {
+    private fun getCodeOwnerMapForChangelist(fileChanges: MutableCollection<Change>): HashMap<List<String>, MutableList<VirtualFile>> {
         val codeOwnerMap: HashMap<List<String>, MutableList<VirtualFile>> = hashMapOf()
         isCodeownerFileEdited = false
 
@@ -80,11 +103,7 @@ internal class CodeOwnersCommitActionPresenter @Inject constructor(
                 }
             }
 
-        return if (codeOwnerMap.isEmpty()) {
-            NoCodeOwnerFileFound
-        } else {
-            FilesWithCodeOwnersEdited(codeOwnerMap)
-        }
+        return codeOwnerMap
     }
 
     private fun createAndShowCodeownersEditedPopupIfNeeded(actionEvent: AnActionEvent) {
@@ -101,26 +120,62 @@ internal class CodeOwnersCommitActionPresenter @Inject constructor(
     private fun createAndShowEmptyChangelistPopup(actionEvent: AnActionEvent) {
         balloonPopupHelper.createAndShowBalloonPopupAboveComponent(
             actionEvent = actionEvent,
-            message = "No files found in default changelist.",
+            message = "No files modified.",
         )
     }
 
     private fun createAndShowEmptyCodeownersPopup(actionEvent: AnActionEvent) {
         balloonPopupHelper.createAndShowBalloonPopupAboveComponent(
             actionEvent = actionEvent,
-            message = "No codeowners file found for files in default changelist.",
+            message = "No CODEOWNERS file found for modified files.",
         )
     }
 
     private fun createAndShowCodeownersPopup(
-        codeOwnerMap: HashMap<List<String>, MutableList<VirtualFile>>,
+        codeOwnerState: FilesWithCodeOwnersEdited,
         actionEvent: AnActionEvent,
     ) {
         val mouseEvent = actionEvent.inputEvent as? MouseEvent
         val point = mouseEvent?.point ?: return
         val component = actionEvent.inputEvent.component as? JComponent ?: return
 
+        val changeLists = codeOwnerState.changeListWithOwnersList
+        if (changeLists.isEmpty()) {
+            return
+        }
+
         val actionGroup = DefaultActionGroup().apply {
+            if (changeLists.first().isDefault) {
+                addSection("Codeowners in '${codeOwnerState.changeListWithOwnersList[0].listLabel}'")
+                add(getCodeOwnerActionGroup(codeOwnerState.changeListWithOwnersList[0].codeOwnersMap))
+
+                addOtherChangelists(changeLists, 1)
+            } else {
+                addOtherChangelists(changeLists, 0)
+            }
+        }
+
+        val popup = ActionManager.getInstance().createActionPopupMenu("CodeOwners.Commit", actionGroup)
+        popup.component.show(component, point.x, point.y)
+    }
+
+    private fun DefaultActionGroup.addOtherChangelists(
+        changeLists: MutableList<ChangeListWithOwners>,
+        firstIndex: Int
+    ) {
+        if (changeLists.size > 1) {
+            addSection("Other Changelists", preSeparator = true)
+
+            for (i in firstIndex until changeLists.size) {
+                DefaultActionGroup("▹ ${changeLists[i].listLabel}", true).apply {
+                    add(getCodeOwnerActionGroup(changeLists[i].codeOwnersMap))
+                }.let { add(it) }
+            }
+        }
+    }
+
+    private fun getCodeOwnerActionGroup(codeOwnerMap: HashMap<List<String>, MutableList<VirtualFile>>): DefaultActionGroup {
+        return DefaultActionGroup().apply {
             codeOwnerMap.keys.forEach { owner ->
                 val modifiedOwnedFiles = codeOwnerMap[owner] ?: return@forEach
 
@@ -133,9 +188,32 @@ internal class CodeOwnersCommitActionPresenter @Inject constructor(
                 add(fileActionGroup)
             }
         }
+    }
 
-        val popup = ActionManager.getInstance().createActionPopupMenu("CodeOwners.Commit", actionGroup)
-        popup.component.show(component, point.x, point.y)
+    private fun DefaultActionGroup.addSection(
+        title: String,
+        preSeparator: Boolean = false,
+        postSeparator: Boolean = false
+    ) {
+        if (preSeparator) {
+            add(Separator())
+        }
+        add(object : AnAction(title) {
+            override fun actionPerformed(e: AnActionEvent) {
+                // No action performed
+            }
+
+            override fun update(actionEvent: AnActionEvent) {
+                actionEvent.presentation.isEnabled = false // makes it non-clickable
+            }
+
+            override fun getActionUpdateThread(): ActionUpdateThread {
+                return ActionUpdateThread.EDT
+            }
+        })
+        if (postSeparator) {
+            add(Separator())
+        }
     }
 
     private fun DefaultActionGroup.addPopupItemAction(
