@@ -11,13 +11,12 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.wm.StatusBar
 import com.wquasar.codeowners.visibility.core.CodeOwnerRule
 import com.wquasar.codeowners.visibility.core.CodeOwnerService
-import com.wquasar.codeowners.visibility.core.CodeOwnerService.Companion.EMPTY_OWNER
 import com.wquasar.codeowners.visibility.core.FileCodeOwnerState
 import com.wquasar.codeowners.visibility.core.FileCodeOwnerState.*
 import com.wquasar.codeowners.visibility.file.FilesHelper
 import javax.swing.SwingConstants
 
-internal class CodeOwnersWidgetPresenter(
+internal class StatusBarWidgetPresenter(
     private val project: Project,
     private val codeOwnerService: CodeOwnerService,
     private val filesHelper: FilesHelper,
@@ -25,9 +24,10 @@ internal class CodeOwnersWidgetPresenter(
 
     companion object {
         const val ID = "com.wquasar.codeowners.visibility.widget.statusbar.CodeOwnersWidget"
+        const val NO_CODEOWNER = "¯\\_(ツ)_/¯"
     }
 
-    lateinit var view: CodeOwnersWidgetView
+    lateinit var view: StatusBarWidgetView
 
     private var currentOrSelectedFile: VirtualFile? = null
     private var currentFileRuleOwnerState: FileCodeOwnerState? = null
@@ -43,13 +43,13 @@ internal class CodeOwnersWidgetPresenter(
 
         currentFileRuleOwnerState = getCurrentFileCodeOwnerState()
         return when (currentFileRuleOwnerState) {
-            NoRuleFoundInCodeOwnerFile -> EMPTY_OWNER
+            NoRuleFoundInCodeOwnerFile -> NO_CODEOWNER
             is RuleFoundInCodeOwnerFile -> {
                 val owners = currentFileRuleOwnerState?.let {
                     (it as RuleFoundInCodeOwnerFile).codeOwnerRule.owners
                 } ?: return ""
                 when {
-                    owners.isEmpty() -> EMPTY_OWNER
+                    owners.isEmpty() -> NO_CODEOWNER
                     owners.size == 1 -> owners.first()
                     owners.size == 2 -> "${owners.first()} & ${owners.last()}"
                     else -> "${owners.first()}, ${owners[1]} & ${owners.size - 2} more"

@@ -3,20 +3,22 @@ package com.wquasar.codeowners.visibility.action.commit
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.ui.MessageType
 import com.wquasar.codeowners.visibility.core.CodeOwnerService
 import com.wquasar.codeowners.visibility.di.CodeOwnersComponentProvider
 import com.wquasar.codeowners.visibility.file.FilesHelper
 import com.wquasar.codeowners.visibility.glob.RuleGlobMatcher
+import com.wquasar.codeowners.visibility.ui.BalloonPopupHelper
 import javax.inject.Inject
 
-internal class CodeOwnersCommitAction : AnAction() {
+internal class CommitAction : AnAction(), CommitActionView {
 
     init {
         CodeOwnersComponentProvider.component.inject(this)
     }
 
     @Inject
-    lateinit var presenter: CodeOwnersCommitActionPresenter
+    lateinit var presenter: CommitActionPresenter
 
     @Inject
     lateinit var ruleGlobMatcher: RuleGlobMatcher
@@ -24,8 +26,12 @@ internal class CodeOwnersCommitAction : AnAction() {
     @Inject
     lateinit var filesHelper: FilesHelper
 
+    @Inject
+    lateinit var balloonPopupHelper: BalloonPopupHelper
+
     override fun update(actionEvent: AnActionEvent) {
         actionEvent.project?.let {
+            presenter.view = this
             presenter.project = it
             presenter.codeOwnerService = it.getService(CodeOwnerService::class.java).apply {
                 init(ruleGlobMatcher, filesHelper)
@@ -42,6 +48,29 @@ internal class CodeOwnersCommitAction : AnAction() {
     }
 
     override fun actionPerformed(actionEvent: AnActionEvent) {
-        presenter.handleAction(actionEvent)
+        presenter.handleActionEvent(actionEvent)
+    }
+
+    override fun showCodeOwnersEditedPopup(actionEvent: AnActionEvent) {
+        balloonPopupHelper.createAndShowBalloonPopupAboveComponent(
+            actionEvent = actionEvent,
+            message = "Codeowners file is edited. Codeowner info may be incorrect.",
+            messageType = MessageType.WARNING,
+            duration = 8000,
+        )
+    }
+
+    override fun showEmptyChangelistPopup(actionEvent: AnActionEvent) {
+        balloonPopupHelper.createAndShowBalloonPopupAboveComponent(
+            actionEvent = actionEvent,
+            message = "No files modified.",
+        )
+    }
+
+    override fun showNoCodeOwnersFilePopup(actionEvent: AnActionEvent) {
+        balloonPopupHelper.createAndShowBalloonPopupAboveComponent(
+            actionEvent = actionEvent,
+            message = "No CODEOWNERS file found for modified files.",
+        )
     }
 }

@@ -8,10 +8,10 @@ internal data class ChangeListWithOwners(
     val isDefault: Boolean,
 )
 
-internal interface CodeOwnersCommitActionState {
-    data object NoChangesInAnyChangelist : CodeOwnersCommitActionState
-    data object NoCodeOwnerFileFound : CodeOwnersCommitActionState
+internal interface CommitActionState {
+    data object NoChangesInAnyChangelist : CommitActionState
+    data object NoCodeOwnerFileFound : CommitActionState
     data class FilesWithCodeOwnersEdited(
         val changeListWithOwnersList: MutableList<ChangeListWithOwners>,
-    ) : CodeOwnersCommitActionState
+    ) : CommitActionState
 }

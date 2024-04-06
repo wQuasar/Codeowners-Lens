@@ -25,7 +25,6 @@ internal class CodeOwnerService {
             "docs/$CODEOWNERS_FILE_NAME",
             ".github/$CODEOWNERS_FILE_NAME",
         )
-        const val EMPTY_OWNER = "¯\\_(ツ)_/¯"
     }
 
     fun init(ruleGlobMatcher: RuleGlobMatcher, filesHelper: FilesHelper) {

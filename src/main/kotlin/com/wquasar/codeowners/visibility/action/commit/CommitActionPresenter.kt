@@ -1,28 +1,31 @@
 package com.wquasar.codeowners.visibility.action.commit
 
-import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.vcs.ProjectLevelVcsManager
 import com.intellij.openapi.vcs.changes.Change
 import com.intellij.openapi.vcs.changes.ChangeListManager
 import com.intellij.openapi.vfs.VirtualFile
-import com.wquasar.codeowners.visibility.action.commit.CodeOwnersCommitActionState.*
+import com.wquasar.codeowners.visibility.action.commit.CommitActionState.*
 import com.wquasar.codeowners.visibility.core.CodeOwnerService
 import com.wquasar.codeowners.visibility.core.FileCodeOwnerState
 import com.wquasar.codeowners.visibility.file.FilesHelper
-import com.wquasar.codeowners.visibility.ui.BalloonPopupHelper
+import com.wquasar.codeowners.visibility.ui.addPopupActionItem
+import com.wquasar.codeowners.visibility.ui.addPopupSection
 import java.awt.event.MouseEvent
 import javax.inject.Inject
 import javax.swing.JComponent
 
-private const val EMPTY_OWNER = "¯\\__(ツ)__/¯"
+private const val NO_CODEOWNER = "¯\\__(ツ)__/¯"
 
-internal class CodeOwnersCommitActionPresenter @Inject constructor(
+internal class CommitActionPresenter @Inject constructor(
     private val filesHelper: FilesHelper,
-    private val balloonPopupHelper: BalloonPopupHelper,
 ) {
 
+    lateinit var view: CommitActionView
     lateinit var project: Project
     lateinit var codeOwnerService: CodeOwnerService
     private var isCodeownerFileEdited = false
@@ -31,18 +34,20 @@ internal class CodeOwnersCommitActionPresenter @Inject constructor(
         return ProjectLevelVcsManager.getInstance(project).checkVcsIsActive("Git")
     }
 
-    fun handleAction(actionEvent: AnActionEvent) {
+    fun handleActionEvent(actionEvent: AnActionEvent) {
         when (val codeOwnerState = getCodeOwnerActionState()) {
-            is NoChangesInAnyChangelist -> createAndShowEmptyChangelistPopup(actionEvent)
-            is NoCodeOwnerFileFound -> createAndShowEmptyCodeownersPopup(actionEvent)
+            is NoChangesInAnyChangelist -> view.showEmptyChangelistPopup(actionEvent)
+            is NoCodeOwnerFileFound -> view.showNoCodeOwnersFilePopup(actionEvent)
             is FilesWithCodeOwnersEdited -> {
+                if (isCodeownerFileEdited) {
+                    view.showCodeOwnersEditedPopup(actionEvent)
+                }
                 createAndShowCodeownersPopup(codeOwnerState, actionEvent)
-                createAndShowCodeownersEditedPopupIfNeeded(actionEvent)
             }
         }
     }
 
-    private fun getCodeOwnerActionState(): CodeOwnersCommitActionState {
+    private fun getCodeOwnerActionState(): CommitActionState {
         val changeListManager = ChangeListManager.getInstance(project)
         if (changeListManager.allChanges.isEmpty()) {
             return NoChangesInAnyChangelist
@@ -97,38 +102,13 @@ internal class CodeOwnersCommitActionPresenter @Inject constructor(
                         add(file)
                     }
                 } else if (codeOwnerState is FileCodeOwnerState.NoRuleFoundInCodeOwnerFile) {
-                    codeOwnerMap.getOrPut(listOf(EMPTY_OWNER)) { mutableListOf() }.apply {
+                    codeOwnerMap.getOrPut(listOf(NO_CODEOWNER)) { mutableListOf() }.apply {
                         add(file)
                     }
                 }
             }
 
         return codeOwnerMap
-    }
-
-    private fun createAndShowCodeownersEditedPopupIfNeeded(actionEvent: AnActionEvent) {
-        if (isCodeownerFileEdited) {
-            balloonPopupHelper.createAndShowBalloonPopupAboveComponent(
-                actionEvent = actionEvent,
-                message = "Codeowners file is edited. Codeowner info may be incorrect.",
-                messageType = MessageType.WARNING,
-                duration = 8000,
-            )
-        }
-    }
-
-    private fun createAndShowEmptyChangelistPopup(actionEvent: AnActionEvent) {
-        balloonPopupHelper.createAndShowBalloonPopupAboveComponent(
-            actionEvent = actionEvent,
-            message = "No files modified.",
-        )
-    }
-
-    private fun createAndShowEmptyCodeownersPopup(actionEvent: AnActionEvent) {
-        balloonPopupHelper.createAndShowBalloonPopupAboveComponent(
-            actionEvent = actionEvent,
-            message = "No CODEOWNERS file found for modified files.",
-        )
     }
 
     private fun createAndShowCodeownersPopup(
@@ -145,85 +125,52 @@ internal class CodeOwnersCommitActionPresenter @Inject constructor(
         }
 
         val actionGroup = DefaultActionGroup().apply {
-            if (changeLists.first().isDefault) {
-                addSection("Codeowners in '${codeOwnerState.changeListWithOwnersList[0].listLabel}'")
-                add(getCodeOwnerActionGroup(codeOwnerState.changeListWithOwnersList[0].codeOwnersMap))
-
-                addOtherChangelists(changeLists, 1)
-            } else {
-                addOtherChangelists(changeLists, 0)
-            }
+            addDefaultChangeList(changeLists.firstOrNull { it.isDefault })
+            addOtherChangelists(changeLists.filter { it.isDefault.not() })
         }
 
         val popup = ActionManager.getInstance().createActionPopupMenu("CodeOwners.Commit", actionGroup)
         popup.component.show(component, point.x, point.y)
     }
 
-    private fun DefaultActionGroup.addOtherChangelists(
-        changeLists: MutableList<ChangeListWithOwners>,
-        firstIndex: Int
+    private fun DefaultActionGroup.addDefaultChangeList(
+        changeList: ChangeListWithOwners?,
     ) {
-        if (changeLists.size > 1) {
-            addSection("Other Changelists", preSeparator = true)
+        changeList ?: return
+        addPopupSection("Codeowners for '${changeList.listLabel}'")
+        add(getCodeOwnerActionGroup(changeList.codeOwnersMap))
+    }
 
-            for (i in firstIndex until changeLists.size) {
-                DefaultActionGroup("▹ ${changeLists[i].listLabel}", true).apply {
-                    add(getCodeOwnerActionGroup(changeLists[i].codeOwnersMap))
-                }.let { add(it) }
-            }
+    private fun DefaultActionGroup.addOtherChangelists(
+        changeLists: List<ChangeListWithOwners>,
+    ) {
+        if (changeLists.isEmpty()) return
+
+        add(Separator())
+        addPopupSection("Other Changelists")
+
+        changeLists.forEach {
+            add(DefaultActionGroup("▹ '${it.listLabel}'", true).apply {
+                add(getCodeOwnerActionGroup(it.codeOwnersMap))
+            })
         }
     }
 
     private fun getCodeOwnerActionGroup(codeOwnerMap: HashMap<List<String>, MutableList<VirtualFile>>): DefaultActionGroup {
         return DefaultActionGroup().apply {
-            codeOwnerMap.keys.forEach { owner ->
-                val modifiedOwnedFiles = codeOwnerMap[owner] ?: return@forEach
+            codeOwnerMap.entries.forEach { (owner, modifiedOwnedFiles) ->
+                if (modifiedOwnedFiles.isEmpty()) return@forEach
 
-                val fileActionGroup =
+                DefaultActionGroup().apply {
                     DefaultActionGroup("${owner.joinToString(", ")} \t[${modifiedOwnedFiles.size}]", true).apply {
                         modifiedOwnedFiles.forEach { file ->
-                            addPopupItemAction(filesHelper.getTruncatedFileName(file), file)
+                            addPopupActionItem(filesHelper.getTruncatedFileName(file)) {
+                                filesHelper.openFile(project, file)
+                            }
                         }
-                    }
-                add(fileActionGroup)
+                    }.let { add(it) }
+                }.let { add(it) }
             }
         }
-    }
-
-    private fun DefaultActionGroup.addSection(
-        title: String,
-        preSeparator: Boolean = false,
-        postSeparator: Boolean = false
-    ) {
-        if (preSeparator) {
-            add(Separator())
-        }
-        add(object : AnAction(title) {
-            override fun actionPerformed(e: AnActionEvent) {
-                // No action performed
-            }
-
-            override fun update(actionEvent: AnActionEvent) {
-                actionEvent.presentation.isEnabled = false // makes it non-clickable
-            }
-
-            override fun getActionUpdateThread(): ActionUpdateThread {
-                return ActionUpdateThread.EDT
-            }
-        })
-        if (postSeparator) {
-            add(Separator())
-        }
-    }
-
-    private fun DefaultActionGroup.addPopupItemAction(
-        fileName: String,
-        file: VirtualFile
-    ) {
-        add(object : AnAction(fileName) {
-            override fun actionPerformed(e: AnActionEvent) {
-                filesHelper.openFile(project, file)
-            }
-        })
     }
 }
