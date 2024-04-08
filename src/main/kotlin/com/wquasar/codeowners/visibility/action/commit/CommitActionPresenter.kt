@@ -28,7 +28,6 @@ internal class CommitActionPresenter @Inject constructor(
     lateinit var view: CommitActionView
     lateinit var project: Project
     lateinit var codeOwnerService: CodeOwnerService
-    private var isCodeownerFileEdited = false
 
     fun isGitEnabled(): Boolean {
         return ProjectLevelVcsManager.getInstance(project).checkVcsIsActive("Git")
@@ -39,10 +38,18 @@ internal class CommitActionPresenter @Inject constructor(
             is NoChangesInAnyChangelist -> view.showEmptyChangelistPopup(actionEvent)
             is NoCodeOwnerFileFound -> view.showNoCodeOwnersFilePopup(actionEvent)
             is FilesWithCodeOwnersEdited -> {
-                if (isCodeownerFileEdited) {
+                if (codeOwnerState.isCodeOwnerFileEdited) {
                     view.showCodeOwnersEditedPopup(actionEvent)
                 }
                 createAndShowCodeownersPopup(codeOwnerState, actionEvent)
+            }
+        }
+    }
+
+    private fun isCodeownerFileEdited(changeListWithOwnersList: MutableList<ChangeListWithOwners>): Boolean {
+        return changeListWithOwnersList.any {
+            it.codeOwnersMap.values.any { files ->
+                files.any { virtualFile -> filesHelper.isCodeOwnersFile(virtualFile) }
             }
         }
     }
@@ -81,19 +88,15 @@ internal class CommitActionPresenter @Inject constructor(
         return if (currentState.changeListWithOwnersList.isEmpty()) {
             NoCodeOwnerFileFound
         } else {
-            currentState
+            currentState.copy(isCodeOwnerFileEdited = isCodeownerFileEdited(currentState.changeListWithOwnersList))
         }
     }
 
     private fun getCodeOwnerMapForChangelist(fileChanges: MutableCollection<Change>): HashMap<List<String>, MutableList<VirtualFile>> {
         val codeOwnerMap: HashMap<List<String>, MutableList<VirtualFile>> = hashMapOf()
-        isCodeownerFileEdited = false
 
         fileChanges.mapNotNull { it.virtualFile }
             .forEach { file ->
-                if (isCodeownerFileEdited.not() && filesHelper.isCodeOwnersFile(file)) {
-                    isCodeownerFileEdited = true
-                }
                 val codeOwnerState = codeOwnerService.getFileCodeOwnerState(project, file)
 
                 if (codeOwnerState is FileCodeOwnerState.RuleFoundInCodeOwnerFile) {

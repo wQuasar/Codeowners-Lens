@@ -13,5 +13,6 @@ internal interface CommitActionState {
     data object NoCodeOwnerFileFound : CommitActionState
     data class FilesWithCodeOwnersEdited(
         val changeListWithOwnersList: MutableList<ChangeListWithOwners>,
+        val isCodeOwnerFileEdited: Boolean = false,
     ) : CommitActionState
 }

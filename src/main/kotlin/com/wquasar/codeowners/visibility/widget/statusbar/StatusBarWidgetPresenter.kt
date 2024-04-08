@@ -135,6 +135,7 @@ internal class StatusBarWidgetPresenter(
         for (event in events) {
             if (filesHelper.isCodeOwnersFile(event.file)) {
                 codeOwnerService.refreshCodeOwnerRules(project)
+                view.updateWidget()
                 break
             }
         }
