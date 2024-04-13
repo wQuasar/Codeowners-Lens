@@ -1,5 +1,6 @@
 package com.wquasar.codeowners.visibility.action.commit
 
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -72,5 +73,10 @@ internal class CommitAction : AnAction(), CommitActionView {
             actionEvent = actionEvent,
             message = "No CODEOWNERS file found for modified files.",
         )
+    }
+
+    override fun showActionPopup(popupInfo: ActionPopupInfo) {
+        val popup = ActionManager.getInstance().createActionPopupMenu("CodeOwners.Commit", popupInfo.actionGroup)
+        popup.component.show(popupInfo.component, popupInfo.point.first, popupInfo.point.second)
     }
 }

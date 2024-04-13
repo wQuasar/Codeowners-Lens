@@ -1,6 +1,5 @@
 package com.wquasar.codeowners.visibility.action.commit
 
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
@@ -34,14 +33,15 @@ internal class CommitActionPresenter @Inject constructor(
     }
 
     fun handleActionEvent(actionEvent: AnActionEvent) {
-        when (val codeOwnerState = getCodeOwnerActionState()) {
+        when (val codeOwnerState = getCommitActionState()) {
             is NoChangesInAnyChangelist -> view.showEmptyChangelistPopup(actionEvent)
             is NoCodeOwnerFileFound -> view.showNoCodeOwnersFilePopup(actionEvent)
             is FilesWithCodeOwnersEdited -> {
                 if (codeOwnerState.isCodeOwnerFileEdited) {
                     view.showCodeOwnersEditedPopup(actionEvent)
                 }
-                createAndShowCodeownersPopup(codeOwnerState, actionEvent)
+                val actionGroup = createAndShowCodeownersPopup(codeOwnerState, actionEvent)
+                actionGroup?.let { view.showActionPopup(it) }
             }
         }
     }
@@ -54,7 +54,7 @@ internal class CommitActionPresenter @Inject constructor(
         }
     }
 
-    private fun getCodeOwnerActionState(): CommitActionState {
+    private fun getCommitActionState(): CommitActionState {
         val changeListManager = ChangeListManager.getInstance(project)
         if (changeListManager.allChanges.isEmpty()) {
             return NoChangesInAnyChangelist
@@ -117,14 +117,14 @@ internal class CommitActionPresenter @Inject constructor(
     private fun createAndShowCodeownersPopup(
         codeOwnerState: FilesWithCodeOwnersEdited,
         actionEvent: AnActionEvent,
-    ) {
+    ): ActionPopupInfo? {
         val mouseEvent = actionEvent.inputEvent as? MouseEvent
-        val point = mouseEvent?.point ?: return
-        val component = actionEvent.inputEvent.component as? JComponent ?: return
+        val point = mouseEvent?.point ?: return null
+        val component = actionEvent.inputEvent.component as? JComponent ?: return null
 
         val changeLists = codeOwnerState.changeListWithOwnersList
         if (changeLists.isEmpty()) {
-            return
+            return null
         }
 
         val actionGroup = DefaultActionGroup().apply {
@@ -132,8 +132,11 @@ internal class CommitActionPresenter @Inject constructor(
             addOtherChangelists(changeLists.filter { it.isDefault.not() })
         }
 
-        val popup = ActionManager.getInstance().createActionPopupMenu("CodeOwners.Commit", actionGroup)
-        popup.component.show(component, point.x, point.y)
+        return ActionPopupInfo(
+            actionGroup = actionGroup,
+            component = component,
+            point = Pair(point.x, point.y),
+        )
     }
 
     private fun DefaultActionGroup.addDefaultChangeList(
@@ -141,7 +144,7 @@ internal class CommitActionPresenter @Inject constructor(
     ) {
         changeList ?: return
         addPopupSection("Codeowners for '${changeList.listLabel}'")
-        add(getCodeOwnerActionGroup(changeList.codeOwnersMap))
+        add(getIndividualCodeOwnersActionGroup(changeList.codeOwnersMap))
     }
 
     private fun DefaultActionGroup.addOtherChangelists(
@@ -154,12 +157,12 @@ internal class CommitActionPresenter @Inject constructor(
 
         changeLists.forEach {
             add(DefaultActionGroup("▹ '${it.listLabel}'", true).apply {
-                add(getCodeOwnerActionGroup(it.codeOwnersMap))
+                add(getIndividualCodeOwnersActionGroup(it.codeOwnersMap))
             })
         }
     }
 
-    private fun getCodeOwnerActionGroup(codeOwnerMap: HashMap<List<String>, MutableList<VirtualFile>>): DefaultActionGroup {
+    private fun getIndividualCodeOwnersActionGroup(codeOwnerMap: HashMap<List<String>, MutableList<VirtualFile>>): DefaultActionGroup {
         return DefaultActionGroup().apply {
             codeOwnerMap.entries.forEach { (owner, modifiedOwnedFiles) ->
                 if (modifiedOwnedFiles.isEmpty()) return@forEach
