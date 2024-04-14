@@ -33,35 +33,41 @@ internal class CodeOwnerService {
     }
 
     fun getFileCodeOwnerState(project: Project, file: VirtualFile): FileCodeOwnerState {
-        if (codeOwnerRuleGlobsMap.keys.any { it.baseDirPath == project.basePath }) {
-            val codeOwnerRule = matchCodeOwnerRuleForFile(file)
-            if (null != codeOwnerRule) {
-                return FileCodeOwnerState.RuleFoundInCodeOwnerFile(codeOwnerRule)
-            }
+        val stateWithProjectBaseDir = findRuleInRulesMap(file, project.basePath)
+        if (null != stateWithProjectBaseDir) {
+            return stateWithProjectBaseDir
         } else {
             updateCodeOwnerRules(project.basePath)
         }
 
-        val baseDirPathForFile = filesHelper.getBaseDir(ModuleManager.getInstance(project), file)
-        if (codeOwnerRuleGlobsMap.keys.any { it.baseDirPath == baseDirPathForFile }) {
-            val codeOwnerRule = matchCodeOwnerRuleForFile(file)
-            if (null != codeOwnerRule) {
-                return FileCodeOwnerState.RuleFoundInCodeOwnerFile(codeOwnerRule)
-            }
+        val fileBaseDir = filesHelper.getBaseDir(ModuleManager.getInstance(project), file)
+        val stateWithFileBaseDir = findRuleInRulesMap(file, fileBaseDir)
+        if (null != stateWithFileBaseDir) {
+            return stateWithFileBaseDir
         } else {
-            updateCodeOwnerRules(baseDirPathForFile)
+            updateCodeOwnerRules(fileBaseDir)
         }
 
-        if (codeOwnerRuleGlobsMap.isEmpty()) {
-            return FileCodeOwnerState.NoCodeOwnerFileFound
+        return if (codeOwnerRuleGlobsMap.isEmpty()) {
+            FileCodeOwnerState.NoCodeOwnerFileFound
         } else {
             val codeOwnerRule = matchCodeOwnerRuleForFile(file)
-            return if (null != codeOwnerRule) {
+            if (null != codeOwnerRule) {
                 FileCodeOwnerState.RuleFoundInCodeOwnerFile(codeOwnerRule)
             } else {
                 FileCodeOwnerState.NoRuleFoundInCodeOwnerFile
             }
         }
+    }
+
+    private fun findRuleInRulesMap(file: VirtualFile, baseDirPath: String?): FileCodeOwnerState? {
+        if (codeOwnerRuleGlobsMap.keys.any { it.baseDirPath == baseDirPath }) {
+            val codeOwnerRule = matchCodeOwnerRuleForFile(file)
+            if (null != codeOwnerRule) {
+                return FileCodeOwnerState.RuleFoundInCodeOwnerFile(codeOwnerRule)
+            }
+        }
+        return null
     }
 
     fun getTrueCodeOwner(codeOwnerLabel: String): String {

@@ -7,6 +7,7 @@ jvmVersion = "17"
 intellijPlugin = "2023.1.5"
 dagger = "2.10"
 mockito = "4.2.0"
+detekt = "1.23.6"
 
 [libraries]
 dagger = { group = "com.google.dagger", name = "dagger", version.ref = "dagger" }
@@ -17,3 +18,4 @@ mockito = { group = "org.mockito", name = "mockito-core", version.ref = "mockito
 jetBrainsKotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 jetBrainsIntellij = { id = "org.jetbrains.intellij", version.ref = "intellij" }
 kotlinKapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

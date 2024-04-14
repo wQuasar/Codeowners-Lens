@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.jetBrainsKotlin)
     alias(libs.plugins.jetBrainsIntellij)
     alias(libs.plugins.kotlinKapt)
+    alias(libs.plugins.detekt)
 }
 
 group = "com.wquasar"

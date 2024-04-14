@@ -12,7 +12,9 @@ import com.intellij.openapi.wm.StatusBar
 import com.wquasar.codeowners.visibility.core.CodeOwnerRule
 import com.wquasar.codeowners.visibility.core.CodeOwnerService
 import com.wquasar.codeowners.visibility.core.FileCodeOwnerState
-import com.wquasar.codeowners.visibility.core.FileCodeOwnerState.*
+import com.wquasar.codeowners.visibility.core.FileCodeOwnerState.RuleFoundInCodeOwnerFile
+import com.wquasar.codeowners.visibility.core.FileCodeOwnerState.NoCodeOwnerFileFound
+import com.wquasar.codeowners.visibility.core.FileCodeOwnerState.NoRuleFoundInCodeOwnerFile
 import com.wquasar.codeowners.visibility.file.FilesHelper
 import javax.swing.SwingConstants
 

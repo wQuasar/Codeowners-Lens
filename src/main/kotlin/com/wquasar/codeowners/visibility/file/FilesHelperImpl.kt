@@ -10,6 +10,8 @@ import com.wquasar.codeowners.visibility.core.CodeOwnerService
 import java.io.File
 import java.nio.file.Path
 
+private const val MAX_FILE_NAME_SEGMENT_LENGTH = 3
+
 internal class FilesHelperImpl(
     private val localFileSystem: LocalFileSystem,
     private val moduleDirProvider: ModuleDirProvider,
@@ -59,8 +61,8 @@ internal class FilesHelperImpl(
         val pathSegments = file.path.split("/")
         val segmentCount = pathSegments.size
         return when {
-            segmentCount <= 3 -> file.path
-            else -> ".../${pathSegments.takeLast(3).joinToString("/")}"
+            segmentCount <= MAX_FILE_NAME_SEGMENT_LENGTH -> file.path
+            else -> ".../${pathSegments.takeLast(MAX_FILE_NAME_SEGMENT_LENGTH).joinToString("/")}"
         }
     }
 }

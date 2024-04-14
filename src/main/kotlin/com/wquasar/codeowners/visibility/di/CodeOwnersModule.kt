@@ -1,7 +1,12 @@
 package com.wquasar.codeowners.visibility.di
 
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.wquasar.codeowners.visibility.file.*
+import com.wquasar.codeowners.visibility.file.FileWrapper
+import com.wquasar.codeowners.visibility.file.FileWrapperImpl
+import com.wquasar.codeowners.visibility.file.FilesHelper
+import com.wquasar.codeowners.visibility.file.FilesHelperImpl
+import com.wquasar.codeowners.visibility.file.ModuleDirProvider
+import com.wquasar.codeowners.visibility.file.ModuleDirProviderImpl
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton

@@ -1,7 +1,9 @@
 package com.wquasar.codeowners.visibility.glob
 
 import com.wquasar.codeowners.visibility.core.CodeOwnerRule
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 internal class RuleGlobTest {
