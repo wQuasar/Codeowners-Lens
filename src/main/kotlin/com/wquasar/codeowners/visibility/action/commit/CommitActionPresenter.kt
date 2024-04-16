@@ -6,7 +6,6 @@ import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.ProjectLevelVcsManager
 import com.intellij.openapi.vcs.changes.Change
-import com.intellij.openapi.vcs.changes.ChangeListManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.wquasar.codeowners.visibility.action.commit.CommitActionState.NoChangesInAnyChangelist
 import com.wquasar.codeowners.visibility.action.commit.CommitActionState.NoCodeOwnerFileFound
@@ -24,6 +23,7 @@ private const val NO_CODEOWNER = "¯\\__(ツ)__/¯"
 
 internal class CommitActionPresenter @Inject constructor(
     private val filesHelper: FilesHelper,
+    private val changeListManagerProvider: ChangeListManagerProvider,
 ) {
 
     lateinit var view: CommitActionView
@@ -57,7 +57,7 @@ internal class CommitActionPresenter @Inject constructor(
     }
 
     private fun getCommitActionState(): CommitActionState {
-        val changeListManager = ChangeListManager.getInstance(project)
+        val changeListManager = changeListManagerProvider.getChangeListManager(project)
         if (changeListManager.allChanges.isEmpty()) {
             return NoChangesInAnyChangelist
         }

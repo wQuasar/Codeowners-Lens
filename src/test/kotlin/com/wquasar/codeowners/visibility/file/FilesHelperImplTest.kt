@@ -6,37 +6,37 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.toNioPathOrNull
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Test
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.io.File
 import java.nio.file.Path
 
 internal class FilesHelperImplTest {
 
-    private val localFileSystem = mock(LocalFileSystem::class.java)
-    private val moduleManager = mock(ModuleManager::class.java)
-    private val moduleDirProvider = mock(ModuleDirProvider::class.java)
-    private val fileWrapper = mock(FileWrapper::class.java)
+    private val localFileSystem: LocalFileSystem = mock()
+    private val moduleManager: ModuleManager = mock()
+    private val moduleDirProvider: ModuleDirProvider = mock()
+    private val fileWrapper: FileWrapper = mock()
     private val filesHelper = FilesHelperImpl(localFileSystem, moduleDirProvider, fileWrapper)
 
     @Test
     fun `findCodeOwnersFile finds CodeOwners file when it exists`() {
         val baseDirPath = "/path/to/baseDir"
         val codeOwnersPath = "/path/to/baseDir/.github/CODEOWNERS"
-        val virtualFile = mock(VirtualFile::class.java)
-        `when`(virtualFile.toNioPathOrNull()).thenReturn(Path.of(codeOwnersPath))
-        `when`(localFileSystem.findFileByNioFile(Path.of(baseDirPath, ".github/CODEOWNERS"))).thenReturn(virtualFile)
-        val neoPath = mock(Path::class.java)
-        `when`(virtualFile.toNioPathOrNull()).thenReturn(neoPath)
-        val file = mock(java.io.File::class.java)
-        `when`(neoPath.toFile()).thenReturn(file)
-        `when`(file.isFile).thenReturn(true)
-        `when`(file.path).thenReturn(codeOwnersPath)
+        val virtualFile = mock<VirtualFile>()
+        whenever(virtualFile.toNioPathOrNull()).thenReturn(Path.of(codeOwnersPath))
+        whenever(localFileSystem.findFileByNioFile(Path.of(baseDirPath, ".github/CODEOWNERS"))).thenReturn(virtualFile)
+        val neoPath = mock<Path>()
+        whenever(virtualFile.toNioPathOrNull()).thenReturn(neoPath)
+        val file = mock<File>()
+        whenever(neoPath.toFile()).thenReturn(file)
+        whenever(file.isFile).thenReturn(true)
+        whenever(file.path).thenReturn(codeOwnersPath)
 
         val result = filesHelper.findCodeOwnersFile(baseDirPath)
 
@@ -47,7 +47,7 @@ internal class FilesHelperImplTest {
     @Test
     fun `findCodeOwnersFile returns null when CodeOwners file does not exist`() {
         val baseDirPath = "/path/to/baseDir"
-        `when`(localFileSystem.findFileByNioFile(Path.of(baseDirPath, ".github/CODEOWNERS"))).thenReturn(null)
+        whenever(localFileSystem.findFileByNioFile(Path.of(baseDirPath, ".github/CODEOWNERS"))).thenReturn(null)
 
         val result = filesHelper.findCodeOwnersFile(baseDirPath)
 
@@ -56,12 +56,12 @@ internal class FilesHelperImplTest {
 
     @Test
     fun `getBaseDir returns base directory when relative path starts with module directory`() {
-        val relativeTo = mock(VirtualFile::class.java)
+        val relativeTo = mock<VirtualFile>()
         val moduleDir = "/path/to/moduleDir/subDir"
-        val module = mock(Module::class.java)
-        `when`(moduleManager.sortedModules).thenReturn(arrayOf(module))
-        `when`(moduleDirProvider.guessModuleDir(module)).thenReturn(relativeTo)
-        `when`(relativeTo.toNioPathOrNull()).thenReturn(Path.of("$moduleDir/subDir"))
+        val module = mock<Module>()
+        whenever(moduleManager.sortedModules).thenReturn(arrayOf(module))
+        whenever(moduleDirProvider.guessModuleDir(module)).thenReturn(relativeTo)
+        whenever(relativeTo.toNioPathOrNull()).thenReturn(Path.of("$moduleDir/subDir"))
 
         val result = filesHelper.getBaseDir(moduleManager, relativeTo)
 
@@ -70,13 +70,13 @@ internal class FilesHelperImplTest {
 
     @Test
     fun `getBaseDir returns null when relative path does not start with any module directory`() {
-        val relativeTo = mock(VirtualFile::class.java)
-        val module = mock(Module::class.java)
-        `when`(moduleManager.sortedModules).thenReturn(arrayOf(module))
-        val moduleDir = mock(VirtualFile::class.java)
-        `when`(moduleDir.toNioPathOrNull()).thenReturn(Path.of("/path/to/otherModuleDir"))
-        `when`(moduleDirProvider.guessModuleDir(module)).thenReturn(moduleDir)
-        `when`(relativeTo.toNioPathOrNull()).thenReturn(Path.of("/path/to/moduleDir/subDir"))
+        val relativeTo = mock<VirtualFile>()
+        val module = mock<Module>()
+        whenever(moduleManager.sortedModules).thenReturn(arrayOf(module))
+        val moduleDir = mock<VirtualFile>()
+        whenever(moduleDir.toNioPathOrNull()).thenReturn(Path.of("/path/to/otherModuleDir"))
+        whenever(moduleDirProvider.guessModuleDir(module)).thenReturn(moduleDir)
+        whenever(relativeTo.toNioPathOrNull()).thenReturn(Path.of("/path/to/moduleDir/subDir"))
 
         val result = filesHelper.getBaseDir(moduleManager, relativeTo)
 
@@ -85,8 +85,8 @@ internal class FilesHelperImplTest {
 
     @Test
     fun `isCodeOwnersFile returns true when file is a CodeOwners file`() {
-        val file = mock(VirtualFile::class.java)
-        `when`(file.path).thenReturn("/path/to/.github/CODEOWNERS")
+        val file = mock<VirtualFile>()
+        whenever(file.path).thenReturn("/path/to/.github/CODEOWNERS")
 
         val result = filesHelper.isCodeOwnersFile(file)
 
@@ -95,8 +95,8 @@ internal class FilesHelperImplTest {
 
     @Test
     fun `isCodeOwnersFile returns false when file is not a CodeOwners file`() {
-        val file = mock(VirtualFile::class.java)
-        `when`(file.path).thenReturn("/path/to/otherFile")
+        val file = mock<VirtualFile>()
+        whenever(file.path).thenReturn("/path/to/otherFile")
 
         val result = filesHelper.isCodeOwnersFile(file)
 
@@ -105,9 +105,9 @@ internal class FilesHelperImplTest {
 
     @Test
     fun `readLines returns list of lines from file`() {
-        val file = mock(File::class.java)
+        val file = mock<File>()
         val lines = listOf("line1", "line2")
-        `when`(fileWrapper.readLines(file)).thenReturn(lines)
+        whenever(fileWrapper.readLines(file)).thenReturn(lines)
 
         val result = filesHelper.readLines(file)
 
@@ -116,11 +116,11 @@ internal class FilesHelperImplTest {
 
     @Test
     fun `getColumnIndexForCodeOwner returns index of code owner label in line`() {
-        val file = mock(File::class.java)
+        val file = mock<File>()
         val lineNumber = 0
         val codeOwnerLabel = "owner2"
         val codeOwnerLine = "owner1 owner2 owner3"
-        `when`(fileWrapper.readLines(file)).thenReturn(listOf(codeOwnerLine))
+        whenever(fileWrapper.readLines(file)).thenReturn(listOf(codeOwnerLine))
 
         val result = filesHelper.getColumnIndexForCodeOwner(file, lineNumber, codeOwnerLabel)
 
@@ -129,10 +129,10 @@ internal class FilesHelperImplTest {
 
     @Test
     fun `getColumnIndexForCodeOwner returns 0 when code owner label is not found in line`() {
-        val file = mock(File::class.java)
+        val file = mock<File>()
         val lineNumber = 0
         val codeOwnerLine = "owner1 owner2 owner3"
-        `when`(fileWrapper.readLines(file)).thenReturn(listOf(codeOwnerLine))
+        whenever(fileWrapper.readLines(file)).thenReturn(listOf(codeOwnerLine))
 
         val result = filesHelper.getColumnIndexForCodeOwner(file, lineNumber, "otherOwner")
 
@@ -141,11 +141,11 @@ internal class FilesHelperImplTest {
 
     @Test
     fun `getColumnIndexForCodeOwner returns 0 when line is empty`() {
-        val file = mock(File::class.java)
+        val file = mock<File>()
         val lineNumber = 0
         val codeOwnerLabel = "owner"
         val codeOwnerLine = ""
-        `when`(fileWrapper.readLines(file)).thenReturn(listOf(codeOwnerLine))
+        whenever(fileWrapper.readLines(file)).thenReturn(listOf(codeOwnerLine))
 
         val result = filesHelper.getColumnIndexForCodeOwner(file, lineNumber, codeOwnerLabel)
 
@@ -154,8 +154,8 @@ internal class FilesHelperImplTest {
 
     @Test
     fun `getTruncatedFileName returns full file path when it has 3 or less segments`() {
-        val file = mock(VirtualFile::class.java)
-        `when`(file.path).thenReturn("path/to/file")
+        val file = mock<VirtualFile>()
+        whenever(file.path).thenReturn("path/to/file")
 
         val result = filesHelper.getTruncatedFileName(file)
 
@@ -164,12 +164,11 @@ internal class FilesHelperImplTest {
 
     @Test
     fun `getTruncatedFileName returns truncated file path when it has more than 3 segments`() {
-        val file = mock(VirtualFile::class.java)
-        `when`(file.path).thenReturn("/path/to/first/second/third/file")
+        val file = mock<VirtualFile>()
+        whenever(file.path).thenReturn("/path/to/first/second/third/file")
 
         val result = filesHelper.getTruncatedFileName(file)
 
         assertEquals(".../second/third/file", result)
     }
-
 }

@@ -53,4 +53,5 @@ dependencies {
     kapt(libs.daggerKapt.get())
 
     testImplementation(libs.mockito.get())
+    testImplementation(libs.mockitoKotlin.get())
 }

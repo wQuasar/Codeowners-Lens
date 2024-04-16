@@ -7,12 +7,14 @@ jvmVersion = "17"
 intellijPlugin = "2023.1.5"
 dagger = "2.10"
 mockito = "4.2.0"
+mockitoKotlin = "4.0.0"
 detekt = "1.23.6"
 
 [libraries]
 dagger = { group = "com.google.dagger", name = "dagger", version.ref = "dagger" }
 daggerKapt = { group = "com.google.dagger", name = "dagger-compiler", version.ref = "dagger" }
 mockito = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
+mockitoKotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
 
 [plugins]
 jetBrainsKotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
