@@ -68,8 +68,11 @@ internal class StatusBarWidgetPresenter(
             updateState(getSelectedFile())
             return null
         }
-        val file = currentOrSelectedFile ?: return null
-        return codeOwnerService.getFileCodeOwnerState(project, file)
+        val currentFile = currentOrSelectedFile ?: return null
+        if (currentFile.isInLocalFileSystem.not()) {
+            return null
+        }
+        return codeOwnerService.getFileCodeOwnerState(project, currentFile)
     }
 
     fun getTooltipText(): String {

@@ -13,6 +13,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 internal class StatusBarWidgetPresenterTest {
@@ -23,7 +25,9 @@ internal class StatusBarWidgetPresenterTest {
     private val filesHelper: FilesHelper = mock()
     private val view: StatusBarWidgetView = mock()
     private val statusBar: StatusBar = mock()
-    private val virtualFile: VirtualFile = mock()
+    private val virtualFile: VirtualFile = mock() {
+        on { isInLocalFileSystem }.thenReturn(true)
+    }
 
     @Before
     fun setup() {
@@ -92,6 +96,16 @@ internal class StatusBarWidgetPresenterTest {
         whenever(codeOwnerService.getFileCodeOwnerState(project, virtualFile)).thenReturn(NoCodeOwnerFileFound)
         val result = presenter.getTooltipText()
         assertEquals("", result)
+    }
+
+    @Test
+    fun `getTooltipText returns empty string when the VirtualFile is not a physical file`() {
+        presenter.updateState(virtualFile)
+        whenever(virtualFile.isInLocalFileSystem).thenReturn(false)
+        val result = presenter.getTooltipText()
+        assertEquals("", result)
+
+        verify(codeOwnerService, never()).getFileCodeOwnerState(project, virtualFile)
     }
 
     @Test
