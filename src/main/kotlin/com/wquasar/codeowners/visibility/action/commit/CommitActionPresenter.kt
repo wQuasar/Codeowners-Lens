@@ -37,15 +37,26 @@ internal class CommitActionPresenter @Inject constructor(
     fun handleActionEvent(actionEvent: AnActionEvent) {
         when (val codeOwnerState = getCommitActionState()) {
             is NoChangesInAnyChangelist -> view.showEmptyChangelistPopup(actionEvent)
-            is NoCodeOwnerFileFound -> view.showNoCodeOwnersFilePopup(actionEvent)
+            is NoCodeOwnerFileFound -> {
+                view.showNoCodeOwnersFilePopup(actionEvent)
+                createAndShowOwnerPopup(codeOwnerState.changeListWithOwnersList, actionEvent)
+            }
+
             is FilesWithCodeOwnersEdited -> {
                 if (codeOwnerState.isCodeOwnerFileEdited) {
                     view.showCodeOwnersEditedPopup(actionEvent)
                 }
-                val actionGroup = createAndShowCodeownersPopup(codeOwnerState, actionEvent)
-                actionGroup?.let { view.showActionPopup(it) }
+                createAndShowOwnerPopup(codeOwnerState.changeListWithOwnersList, actionEvent)
             }
         }
+    }
+
+    private fun createAndShowOwnerPopup(
+        changeListWithOwners: List<ChangeListWithOwners>,
+        actionEvent: AnActionEvent
+    ) {
+        val actionGroup = createAndShowCodeownersPopup(changeListWithOwners, actionEvent)
+        actionGroup?.let { view.showActionPopup(it) }
     }
 
     private fun isCodeownerFileEdited(changeListWithOwnersList: MutableList<ChangeListWithOwners>): Boolean {
@@ -62,8 +73,7 @@ internal class CommitActionPresenter @Inject constructor(
             return NoChangesInAnyChangelist
         }
 
-        val currentState = FilesWithCodeOwnersEdited(changeListWithOwnersList = mutableListOf())
-
+        val currentChangeListWithOwnersList = mutableListOf<ChangeListWithOwners>()
         changeListManager.changeLists.forEach { changeList ->
             val fileChanges = changeList.changes
             if (fileChanges.isEmpty()) {
@@ -77,16 +87,26 @@ internal class CommitActionPresenter @Inject constructor(
                     codeOwnersMap = codeOwnerMap,
                     isDefault = changeList.isDefault,
                 )
-                val currentOwnerList = currentState.changeListWithOwnersList
-                currentOwnerList.add(if (changeList.isDefault) 0 else currentOwnerList.size, changeListWithOwner)
+                currentChangeListWithOwnersList.add(
+                    if (changeList.isDefault) 0 else currentChangeListWithOwnersList.size, changeListWithOwner
+                )
             }
         }
 
-        return if (currentState.changeListWithOwnersList.isEmpty()) {
-            NoCodeOwnerFileFound
+        return if (isNoCodeOwnerFileFound(currentChangeListWithOwnersList)) {
+            NoCodeOwnerFileFound(
+                changeListWithOwnersList = currentChangeListWithOwnersList,
+            )
         } else {
-            currentState.copy(isCodeOwnerFileEdited = isCodeownerFileEdited(currentState.changeListWithOwnersList))
+            FilesWithCodeOwnersEdited(
+                isCodeOwnerFileEdited = isCodeownerFileEdited(currentChangeListWithOwnersList),
+                changeListWithOwnersList = currentChangeListWithOwnersList,
+            )
         }
+    }
+
+    private fun isNoCodeOwnerFileFound(changeLists: MutableList<ChangeListWithOwners>): Boolean {
+        return changeLists.singleOrNull()?.codeOwnersMap?.keys?.first() == listOf(NO_CODEOWNER)
     }
 
     private fun getCodeOwnerMapForChangelist(fileChanges: MutableCollection<Change>):
@@ -102,10 +122,12 @@ internal class CommitActionPresenter @Inject constructor(
                     codeOwnerMap.getOrPut(owners) { mutableListOf() }.apply {
                         add(file)
                     }
-                } else if (codeOwnerState is FileCodeOwnerState.NoRuleFoundInCodeOwnerFile) {
-                    codeOwnerMap.getOrPut(listOf(NO_CODEOWNER)) { mutableListOf() }.apply {
-                        add(file)
-                    }
+                } else if (codeOwnerState is FileCodeOwnerState.NoRuleFoundInCodeOwnerFile ||
+                    codeOwnerState is FileCodeOwnerState.NoCodeOwnerFileFound
+                ) {
+                    codeOwnerMap
+                        .getOrPut(listOf(NO_CODEOWNER)) { mutableListOf() }
+                        .apply { add(file) }
                 }
             }
 
@@ -113,18 +135,17 @@ internal class CommitActionPresenter @Inject constructor(
     }
 
     private fun createAndShowCodeownersPopup(
-        codeOwnerState: FilesWithCodeOwnersEdited,
+        changeListWithOwners: List<ChangeListWithOwners>,
         actionEvent: AnActionEvent,
     ): ActionPopupInfo? {
-        val changeLists = codeOwnerState.changeListWithOwnersList
-        if (changeLists.isEmpty()) return null
+        if (changeListWithOwners.isEmpty()) return null
 
         (actionEvent.inputEvent as? MouseEvent)?.let { mouseEvent ->
             val point = mouseEvent.point
             (actionEvent.inputEvent.component as? JComponent)?.let { component ->
                 val actionGroup = DefaultActionGroup().apply {
-                    addDefaultChangeList(changeLists.firstOrNull { it.isDefault })
-                    addOtherChangelists(changeLists.filter { it.isDefault.not() })
+                    addDefaultChangeList(changeListWithOwners.firstOrNull { it.isDefault })
+                    addOtherChangelists(changeListWithOwners.filter { it.isDefault.not() })
                 }
                 return ActionPopupInfo(
                     actionGroup = actionGroup,

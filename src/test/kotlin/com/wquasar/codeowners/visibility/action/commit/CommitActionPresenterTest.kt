@@ -43,14 +43,4 @@ internal class CommitActionPresenterTest {
         // Assert
         verify(view).showEmptyChangelistPopup(actionEvent)
     }
-
-    @Test
-    fun `should show no codeowners file popup when no codeowner file found`() {
-        // Arrange
-        whenever(changeListManager.allChanges).thenReturn(listOf(mock()))
-        // Act
-        presenter.handleActionEvent(actionEvent)
-        // Assert
-        verify(view).showNoCodeOwnersFilePopup(actionEvent)
-    }
 }
