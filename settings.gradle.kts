@@ -5,4 +5,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "Codeowners_Visibility"
+rootProject.name = "Codeowners Lens"
