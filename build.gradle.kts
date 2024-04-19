@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.wquasar"
-version = "1.0-SNAPSHOT"
+version = "0.6.0"
 
 repositories {
     mavenCentral()
