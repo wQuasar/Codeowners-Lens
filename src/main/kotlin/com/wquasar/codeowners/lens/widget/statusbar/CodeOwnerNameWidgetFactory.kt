@@ -9,7 +9,7 @@ import com.wquasar.codeowners.lens.glob.RuleGlobMatcher
 import javax.inject.Inject
 
 
-internal class StatusBarWidgetFactory : StatusBarWidgetFactory {
+internal class CodeOwnerNameWidgetFactory : StatusBarWidgetFactory {
 
     init {
         CodeOwnersComponentProvider.component.inject(this)
@@ -26,12 +26,12 @@ internal class StatusBarWidgetFactory : StatusBarWidgetFactory {
     }
 
     private fun createPresenter(project: Project) =
-        StatusBarWidgetPresenter(project, getCodeOwnerService(project), filesHelper)
+        CodeOwnerNameWidgetPresenter(project, getCodeOwnerService(project), filesHelper)
 
-    override fun getId() = StatusBarWidgetPresenter.ID
+    override fun getId() = CodeOwnerNameWidgetPresenter.ID
 
     override fun getDisplayName() = "Code Owners"
 
     override fun createWidget(project: Project) =
-        StatusBarWidget(project, createPresenter(project))
+        CodeOwnerNameWidget(project, createPresenter(project))
 }

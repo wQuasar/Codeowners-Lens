@@ -16,11 +16,11 @@ import com.intellij.refactoring.listeners.RefactoringEventData
 import com.intellij.refactoring.listeners.RefactoringEventListener
 import com.intellij.util.messages.MessageBusConnection
 
-internal class StatusBarWidget(
+internal class CodeOwnerNameWidget(
     currentProject: Project,
-    private val presenter: StatusBarWidgetPresenter
+    private val presenter: CodeOwnerNameWidgetPresenter
 ) : EditorBasedWidget(currentProject), StatusBarWidget.MultipleTextValuesPresentation,
-    RefactoringEventListener, FileEditorManagerListener, StatusBarWidgetView {
+    RefactoringEventListener, FileEditorManagerListener, CodeOwnerNameWidgetView {
 
     private val connection: MessageBusConnection = currentProject.messageBus.connect(this)
 

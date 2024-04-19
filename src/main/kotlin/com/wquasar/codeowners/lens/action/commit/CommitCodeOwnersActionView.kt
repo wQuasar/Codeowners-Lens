@@ -4,7 +4,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import javax.swing.JComponent
 
-internal interface CommitActionView {
+internal interface CommitCodeOwnersActionView {
 
     fun showCodeOwnersEditedPopup(actionEvent: AnActionEvent)
 

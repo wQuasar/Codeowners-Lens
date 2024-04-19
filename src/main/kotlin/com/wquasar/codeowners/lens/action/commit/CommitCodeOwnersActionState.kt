@@ -2,15 +2,15 @@ package com.wquasar.codeowners.lens.action.commit
 
 import com.intellij.openapi.vfs.VirtualFile
 
-internal interface CommitActionState {
-    data object NoChangesInAnyChangelist : CommitActionState
+internal interface CommitCodeOwnersActionState {
+    data object NoChangesInAnyChangelist : CommitCodeOwnersActionState
     data class NoCodeOwnerFileFound(
         val changeListWithOwnersList: MutableList<ChangeListWithOwners>,
-    ) : CommitActionState
+    ) : CommitCodeOwnersActionState
     data class FilesWithCodeOwnersEdited(
         val changeListWithOwnersList: MutableList<ChangeListWithOwners>,
         val isCodeOwnerFileEdited: Boolean = false,
-    ) : CommitActionState
+    ) : CommitCodeOwnersActionState
 }
 
 internal data class ChangeListWithOwners(

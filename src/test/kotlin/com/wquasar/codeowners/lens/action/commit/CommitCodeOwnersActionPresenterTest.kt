@@ -4,6 +4,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.changes.ChangeListManager
 import com.wquasar.codeowners.lens.core.CodeOwnerService
+import com.wquasar.codeowners.lens.file.ChangeListManagerProvider
 import com.wquasar.codeowners.lens.file.FilesHelper
 import org.junit.Before
 import org.junit.Test
@@ -11,17 +12,17 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-internal class CommitActionPresenterTest {
+internal class CommitCodeOwnersActionPresenterTest {
 
     private val filesHelper: FilesHelper = mock()
     private val codeOwnerService: CodeOwnerService = mock()
-    private val view: CommitActionView = mock()
+    private val view: CommitCodeOwnersActionView = mock()
     private val project: Project = mock()
     private val actionEvent: AnActionEvent = mock()
     private val changeListManager: ChangeListManager = mock()
     private val changeListManagerProvider: ChangeListManagerProvider = mock()
 
-    private var presenter: CommitActionPresenter = CommitActionPresenter(
+    private var presenter: CommitCodeOwnersActionPresenter = CommitCodeOwnersActionPresenter(
         filesHelper,
         changeListManagerProvider,
     )

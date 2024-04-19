@@ -12,14 +12,14 @@ import com.wquasar.codeowners.lens.glob.RuleGlobMatcher
 import com.wquasar.codeowners.lens.ui.BalloonPopupHelper
 import javax.inject.Inject
 
-internal class CommitAction : AnAction(), CommitActionView {
+internal class CommitCodeOwnersAction : AnAction(), CommitCodeOwnersActionView {
 
     init {
         CodeOwnersComponentProvider.component.inject(this)
     }
 
     @Inject
-    lateinit var presenter: CommitActionPresenter
+    lateinit var presenter: CommitCodeOwnersActionPresenter
 
     @Inject
     lateinit var ruleGlobMatcher: RuleGlobMatcher

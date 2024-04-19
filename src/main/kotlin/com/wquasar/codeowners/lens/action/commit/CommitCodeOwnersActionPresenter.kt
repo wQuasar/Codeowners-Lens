@@ -7,11 +7,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.ProjectLevelVcsManager
 import com.intellij.openapi.vcs.changes.Change
 import com.intellij.openapi.vfs.VirtualFile
-import com.wquasar.codeowners.lens.action.commit.CommitActionState.NoChangesInAnyChangelist
-import com.wquasar.codeowners.lens.action.commit.CommitActionState.NoCodeOwnerFileFound
-import com.wquasar.codeowners.lens.action.commit.CommitActionState.FilesWithCodeOwnersEdited
+import com.wquasar.codeowners.lens.action.commit.CommitCodeOwnersActionState.NoChangesInAnyChangelist
+import com.wquasar.codeowners.lens.action.commit.CommitCodeOwnersActionState.NoCodeOwnerFileFound
+import com.wquasar.codeowners.lens.action.commit.CommitCodeOwnersActionState.FilesWithCodeOwnersEdited
 import com.wquasar.codeowners.lens.core.CodeOwnerService
 import com.wquasar.codeowners.lens.core.FileCodeOwnerState
+import com.wquasar.codeowners.lens.file.ChangeListManagerProvider
 import com.wquasar.codeowners.lens.file.FilesHelper
 import com.wquasar.codeowners.lens.ui.addPopupActionItem
 import com.wquasar.codeowners.lens.ui.addPopupSection
@@ -21,12 +22,12 @@ import javax.swing.JComponent
 
 private const val NO_CODEOWNER = "¯\\__(ツ)__/¯"
 
-internal class CommitActionPresenter @Inject constructor(
+internal class CommitCodeOwnersActionPresenter @Inject constructor(
     private val filesHelper: FilesHelper,
     private val changeListManagerProvider: ChangeListManagerProvider,
 ) {
 
-    lateinit var view: CommitActionView
+    lateinit var view: CommitCodeOwnersActionView
     lateinit var project: Project
     lateinit var codeOwnerService: CodeOwnerService
 
@@ -67,7 +68,7 @@ internal class CommitActionPresenter @Inject constructor(
         }
     }
 
-    private fun getCommitActionState(): CommitActionState {
+    private fun getCommitActionState(): CommitCodeOwnersActionState {
         val changeListManager = changeListManagerProvider.getChangeListManager(project)
         if (changeListManager.allChanges.isEmpty()) {
             return NoChangesInAnyChangelist

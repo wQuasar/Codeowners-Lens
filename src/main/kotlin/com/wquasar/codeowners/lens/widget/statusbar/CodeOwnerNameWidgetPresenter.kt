@@ -18,18 +18,18 @@ import com.wquasar.codeowners.lens.core.FileCodeOwnerState.NoRuleFoundInCodeOwne
 import com.wquasar.codeowners.lens.file.FilesHelper
 import javax.swing.SwingConstants
 
-internal class StatusBarWidgetPresenter(
+internal class CodeOwnerNameWidgetPresenter(
     private val project: Project,
     private val codeOwnerService: CodeOwnerService,
     private val filesHelper: FilesHelper,
 ) {
 
     companion object {
-        const val ID = "com.wquasar.codeowners.lens.widget.statusbar.CodeOwnersWidget"
+        const val ID = "com.wquasar.codeowners.lens.CodeOwnerNameWidget"
         const val NO_CODEOWNER = "¯\\_(ツ)_/¯"
     }
 
-    lateinit var view: StatusBarWidgetView
+    lateinit var view: CodeOwnerNameWidgetView
 
     private var currentOrSelectedFile: VirtualFile? = null
     private var currentFileRuleOwnerState: FileCodeOwnerState? = null

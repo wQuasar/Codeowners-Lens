@@ -23,12 +23,12 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <statusBarWidgetFactory implementation="com.wquasar.codeowners.lens.widget.statusbar.StatusBarWidgetFactory"
-                                id="com.wquasar.codeowners.lens.widget.statusbar.StatusBarWidget"/>
+        <statusBarWidgetFactory implementation="com.wquasar.codeowners.lens.widget.statusbar.CodeOwnerNameWidgetFactory"
+                                id="com.wquasar.codeowners.lens.CodeOwnerNameWidget"/>
     </extensions>
     <actions>
-        <action id="com.wquasar.codeowners.lens.action.commit.CommitAction"
-                class="com.wquasar.codeowners.lens.action.commit.CommitAction"
+        <action id="com.wquasar.codeowners.lens.CommitCodeOwnersAction"
+                class="com.wquasar.codeowners.lens.action.commit.CommitCodeOwnersAction"
                 icon="/icons/codeowner_icon.svg"
                 text="See Codeowners">
             <add-to-group group-id="Vcs.MessageActionGroup" anchor="last"/>

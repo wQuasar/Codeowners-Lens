@@ -17,13 +17,13 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-internal class StatusBarWidgetPresenterTest {
+internal class CodeOwnerNameWidgetPresenterTest {
 
-    private lateinit var presenter: StatusBarWidgetPresenter
+    private lateinit var presenter: CodeOwnerNameWidgetPresenter
     private val project: Project = mock()
     private val codeOwnerService: CodeOwnerService = mock()
     private val filesHelper: FilesHelper = mock()
-    private val view: StatusBarWidgetView = mock()
+    private val view: CodeOwnerNameWidgetView = mock()
     private val statusBar: StatusBar = mock()
     private val virtualFile: VirtualFile = mock() {
         on { isInLocalFileSystem }.thenReturn(true)
@@ -31,7 +31,7 @@ internal class StatusBarWidgetPresenterTest {
 
     @Before
     fun setup() {
-        presenter = StatusBarWidgetPresenter(project, codeOwnerService, filesHelper)
+        presenter = CodeOwnerNameWidgetPresenter(project, codeOwnerService, filesHelper)
         presenter.view = view
     }
 
@@ -60,7 +60,7 @@ internal class StatusBarWidgetPresenterTest {
         presenter.updateState(virtualFile)
         whenever(codeOwnerService.getFileCodeOwnerState(project, virtualFile)).thenReturn(NoRuleFoundInCodeOwnerFile)
         val result = presenter.getSelectedValue()
-        assertEquals(StatusBarWidgetPresenter.NO_CODEOWNER, result)
+        assertEquals(CodeOwnerNameWidgetPresenter.NO_CODEOWNER, result)
     }
 
     @Test

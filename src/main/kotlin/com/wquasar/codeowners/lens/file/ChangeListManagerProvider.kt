@@ -1,4 +1,4 @@
-package com.wquasar.codeowners.lens.action.commit
+package com.wquasar.codeowners.lens.file
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.changes.ChangeListManager
