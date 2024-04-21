@@ -34,40 +34,21 @@ internal class CodeOwnerService {
         updateCodeOwnerRules(project.basePath)
     }
 
-    fun getFileCodeOwnerState(file: VirtualFile): FileCodeOwnerState {
-        val stateWithProjectBaseDir = findRuleInRulesMap(file)
-        if (null != stateWithProjectBaseDir) {
-            return stateWithProjectBaseDir
-        }
-
-        return if (codeOwnerRuleGlobs.isEmpty()) {
-            FileCodeOwnerState.NoCodeOwnerFileFound
-        } else {
-            val codeOwnerRule = matchCodeOwnerRuleForFile(file)
-            if (null != codeOwnerRule) {
-                FileCodeOwnerState.RuleFoundInCodeOwnerFile(codeOwnerRule)
-            } else {
-                FileCodeOwnerState.NoRuleFoundInCodeOwnerFile
-            }
-        }
+    fun getFileCodeOwnerState(file: VirtualFile, basePath: String?): FileCodeOwnerState {
+        if (null == basePath || codeOwnerRuleGlobs.isEmpty()) return FileCodeOwnerState.NoCodeOwnerFileFound
+        return findRuleInRulesMap(file, basePath) ?: FileCodeOwnerState.NoRuleFoundInCodeOwnerFile
     }
 
-    private fun findRuleInRulesMap(file: VirtualFile): FileCodeOwnerState? {
-        val codeOwnerRule = matchCodeOwnerRuleForFile(file)
-        if (null != codeOwnerRule) {
-            return FileCodeOwnerState.RuleFoundInCodeOwnerFile(codeOwnerRule)
-        }
-        return null
+    private fun findRuleInRulesMap(file: VirtualFile, basePath: String): FileCodeOwnerState? {
+        val codeOwnerRule = codeOwnerRuleGlobs
+            .lastOrNull { ruleGlobMatcher.matches(it, file.path.removePrefix(basePath)) }
+            ?.codeOwnerRule
+        return codeOwnerRule?.let { FileCodeOwnerState.RuleFoundInCodeOwnerFile(it) }
     }
 
     fun getTrueCodeOwner(codeOwnerLabel: String): String {
         return commonCodeOwnerPrefix + codeOwnerLabel
     }
-
-    private fun matchCodeOwnerRuleForFile(file: VirtualFile): CodeOwnerRule? =
-        codeOwnerRuleGlobs.lastOrNull {
-            ruleGlobMatcher.matches(it, file.path)
-        }?.codeOwnerRule
 
     private fun updateCodeOwnerRules(baseDirPath: String?) {
         baseDirPath ?: return

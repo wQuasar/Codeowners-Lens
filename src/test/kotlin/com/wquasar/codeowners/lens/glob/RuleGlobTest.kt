@@ -18,10 +18,30 @@ internal class RuleGlobTest {
     fun `Glob init creates correct segments`() {
         val rule = CodeOwnerRule("pattern", listOf("owner"), 1)
         val ruleGlob = RuleGlob(rule, "baseDir")
+        assertEquals(3, ruleGlob.segments.size)
+        assertTrue(ruleGlob.segments[0].optional)
+        assertFalse(ruleGlob.segments[1].optional)
+        assertTrue(ruleGlob.segments[2].optional)
+    }
+
+    @Test
+    fun `Glob init creates correct segments 2`() {
+        val rule = CodeOwnerRule("**/pattern/", listOf("owner"), 1)
+        val ruleGlob = RuleGlob(rule, "baseDir")
         assertEquals(4, ruleGlob.segments.size)
-        assertFalse(ruleGlob.segments[0].optional)
-        assertTrue(ruleGlob.segments[1].optional)
-        assertFalse(ruleGlob.segments[2].optional)
-        assertTrue(ruleGlob.segments[3].optional)
+    }
+
+    @Test
+    fun `Glob init creates correct segments 3`() {
+        val rule = CodeOwnerRule("*.js", listOf("owner"), 1)
+        val ruleGlob = RuleGlob(rule, "baseDir")
+        assertEquals(3, ruleGlob.segments.size)
+    }
+
+    @Test
+    fun `Glob init creates correct segments 4`() {
+        val rule = CodeOwnerRule("/ui/**/**/cosine/*.js", listOf("owner"), 1)
+        val ruleGlob = RuleGlob(rule, "baseDir")
+        assertEquals(6, ruleGlob.segments.size)
     }
 }

@@ -116,7 +116,7 @@ internal class CommitCodeOwnersActionPresenter @Inject constructor(
 
         fileChanges.mapNotNull { it.virtualFile }
             .forEach { file ->
-                val codeOwnerState = codeOwnerService.getFileCodeOwnerState(file)
+                val codeOwnerState = codeOwnerService.getFileCodeOwnerState(file, project.basePath)
 
                 if (codeOwnerState is FileCodeOwnerState.RuleFoundInCodeOwnerFile) {
                     val owners = codeOwnerState.codeOwnerRule.owners

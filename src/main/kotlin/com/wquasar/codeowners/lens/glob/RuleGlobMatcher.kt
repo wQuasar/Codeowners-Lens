@@ -4,8 +4,8 @@ import java.util.*
 import javax.inject.Inject
 
 internal class RuleGlobMatcher @Inject constructor() {
-    fun matches(ruleGlob: RuleGlob, absolutePath: String): Boolean =
-        matchSegments(ruleGlob.segments, absolutePath.split('/')) != ruleGlob.codeOwnerRule.pattern.startsWith("!")
+    fun matches(ruleGlob: RuleGlob, relativePath: String): Boolean =
+        matchSegments(ruleGlob.segments, relativePath.split('/')) != ruleGlob.codeOwnerRule.pattern.startsWith("!")
 
     private fun matchSegments(segments: List<RuleGlob.Segment>, paths: List<String>): Boolean {
         val sizeOfSegments = segments.size

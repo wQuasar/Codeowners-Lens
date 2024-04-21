@@ -72,7 +72,7 @@ internal class CodeOwnerNameWidgetPresenter(
         if (currentFile.isInLocalFileSystem.not()) {
             return null
         }
-        return codeOwnerService.getFileCodeOwnerState(currentFile)
+        return codeOwnerService.getFileCodeOwnerState(currentFile, project.basePath)
     }
 
     fun getTooltipText(): String {
