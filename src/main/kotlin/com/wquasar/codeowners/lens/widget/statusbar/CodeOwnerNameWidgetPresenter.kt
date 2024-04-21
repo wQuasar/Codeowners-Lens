@@ -72,7 +72,7 @@ internal class CodeOwnerNameWidgetPresenter(
         if (currentFile.isInLocalFileSystem.not()) {
             return null
         }
-        return codeOwnerService.getFileCodeOwnerState(project, currentFile)
+        return codeOwnerService.getFileCodeOwnerState(currentFile)
     }
 
     fun getTooltipText(): String {
@@ -127,7 +127,7 @@ internal class CodeOwnerNameWidgetPresenter(
 
     private fun goToOwner(codeOwnerRule: CodeOwnerRule, codeOwnerLabel: String) {
         val codeOwnerString = codeOwnerService.getTrueCodeOwner(codeOwnerLabel)
-        val codeOwnerFile = codeOwnerService.getCodeOwnerFileForRule(codeOwnerRule) ?: return
+        val codeOwnerFile = codeOwnerService.getCodeOwnerFile() ?: return
 
         val vf = codeOwnerFile.toPath().let { VirtualFileManager.getInstance().findFileByNioPath(it) } ?: return
         val columnIndex =

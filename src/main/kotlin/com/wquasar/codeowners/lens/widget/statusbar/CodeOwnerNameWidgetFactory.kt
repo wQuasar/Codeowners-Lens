@@ -22,7 +22,7 @@ internal class CodeOwnerNameWidgetFactory : StatusBarWidgetFactory {
     lateinit var ruleGlobMatcher: RuleGlobMatcher
 
     private fun getCodeOwnerService(project: Project) = project.getService(CodeOwnerService::class.java).apply {
-        init(ruleGlobMatcher, filesHelper)
+        init(project, ruleGlobMatcher, filesHelper)
     }
 
     private fun createPresenter(project: Project) =

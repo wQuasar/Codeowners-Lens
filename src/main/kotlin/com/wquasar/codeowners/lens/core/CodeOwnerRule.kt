@@ -2,7 +2,7 @@ package com.wquasar.codeowners.lens.core
 
 internal data class CodeOwnerRule(
     val pattern: String,
-    val owners: List<String>,
+    var owners: List<String>,
     val lineNumber: Int,
 ) {
     companion object {

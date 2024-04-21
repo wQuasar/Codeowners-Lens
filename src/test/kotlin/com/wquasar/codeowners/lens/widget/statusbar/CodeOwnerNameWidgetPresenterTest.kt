@@ -58,7 +58,7 @@ internal class CodeOwnerNameWidgetPresenterTest {
     @Test
     fun `get Selected Value returns NO CODEOWNER when no rule is found in code owner file`() {
         presenter.updateState(virtualFile)
-        whenever(codeOwnerService.getFileCodeOwnerState(project, virtualFile)).thenReturn(NoRuleFoundInCodeOwnerFile)
+        whenever(codeOwnerService.getFileCodeOwnerState(virtualFile)).thenReturn(NoRuleFoundInCodeOwnerFile)
         val result = presenter.getSelectedValue()
         assertEquals(CodeOwnerNameWidgetPresenter.NO_CODEOWNER, result)
     }
@@ -67,7 +67,7 @@ internal class CodeOwnerNameWidgetPresenterTest {
     fun `get Selected Value returns owner name when rule is found in code owner file`() {
         presenter.updateState(virtualFile)
         val codeOwnerRule = CodeOwnerRule(pattern = "path", owners = listOf("owner"), lineNumber = 1)
-        whenever(codeOwnerService.getFileCodeOwnerState(project, virtualFile)).thenReturn(
+        whenever(codeOwnerService.getFileCodeOwnerState(virtualFile)).thenReturn(
             RuleFoundInCodeOwnerFile(
                 codeOwnerRule
             )
@@ -81,7 +81,7 @@ internal class CodeOwnerNameWidgetPresenterTest {
         presenter.updateState(virtualFile)
         val codeOwnerRule =
             CodeOwnerRule(pattern = "path", owners = listOf("owner1", "owner2", "owner3"), lineNumber = 1)
-        whenever(codeOwnerService.getFileCodeOwnerState(project, virtualFile)).thenReturn(
+        whenever(codeOwnerService.getFileCodeOwnerState(virtualFile)).thenReturn(
             RuleFoundInCodeOwnerFile(
                 codeOwnerRule
             )
@@ -93,7 +93,7 @@ internal class CodeOwnerNameWidgetPresenterTest {
     @Test
     fun `getTooltipText returns empty string when no code owner file is found`() {
         presenter.updateState(virtualFile)
-        whenever(codeOwnerService.getFileCodeOwnerState(project, virtualFile)).thenReturn(NoCodeOwnerFileFound)
+        whenever(codeOwnerService.getFileCodeOwnerState(virtualFile)).thenReturn(NoCodeOwnerFileFound)
         val result = presenter.getTooltipText()
         assertEquals("", result)
     }
@@ -105,12 +105,12 @@ internal class CodeOwnerNameWidgetPresenterTest {
         val result = presenter.getTooltipText()
         assertEquals("", result)
 
-        verify(codeOwnerService, never()).getFileCodeOwnerState(project, virtualFile)
+        verify(codeOwnerService, never()).getFileCodeOwnerState(virtualFile)
     }
 
     @Test
     fun `getTooltipText returns appropriate message when no rule is found in code owner file`() {
-        whenever(codeOwnerService.getFileCodeOwnerState(project, virtualFile)).thenReturn(NoRuleFoundInCodeOwnerFile)
+        whenever(codeOwnerService.getFileCodeOwnerState(virtualFile)).thenReturn(NoRuleFoundInCodeOwnerFile)
         presenter.updateState(virtualFile)
         presenter.getSelectedValue()
         val result = presenter.getTooltipText()
@@ -120,7 +120,7 @@ internal class CodeOwnerNameWidgetPresenterTest {
     @Test
     fun `getTooltipText returns appropriate message when rule is found in code owner file`() {
         val codeOwnerRule = CodeOwnerRule(pattern = "path", owners = listOf("owner"), lineNumber = 1)
-        whenever(codeOwnerService.getFileCodeOwnerState(project, virtualFile)).thenReturn(
+        whenever(codeOwnerService.getFileCodeOwnerState(virtualFile)).thenReturn(
             RuleFoundInCodeOwnerFile(
                 codeOwnerRule
             )

@@ -1,7 +1,6 @@
 package com.wquasar.codeowners.lens.core
 
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.wquasar.codeowners.lens.file.FilesHelper
@@ -15,40 +14,33 @@ internal class CodeOwnerService {
     private lateinit var ruleGlobMatcher: RuleGlobMatcher
     private lateinit var filesHelper: FilesHelper
 
-    private val codeOwnerRuleGlobsMap: LinkedHashMap<CodeOwnerFile, LinkedHashSet<RuleGlob>> = linkedMapOf()
+    private val codeOwnerRuleGlobs: LinkedHashSet<RuleGlob> = linkedSetOf()
     private var commonCodeOwnerPrefix = ""
+    private var codeOwnerFile: File? = null
 
     companion object {
         private const val CODEOWNERS_FILE_NAME = "CODEOWNERS"
         val validCodeOwnersPaths = listOf(
+            ".github/$CODEOWNERS_FILE_NAME",
             CODEOWNERS_FILE_NAME,
             "docs/$CODEOWNERS_FILE_NAME",
-            ".github/$CODEOWNERS_FILE_NAME",
         )
     }
 
-    fun init(ruleGlobMatcher: RuleGlobMatcher, filesHelper: FilesHelper) {
+    fun init(project: Project, ruleGlobMatcher: RuleGlobMatcher, filesHelper: FilesHelper) {
         this.ruleGlobMatcher = ruleGlobMatcher
         this.filesHelper = filesHelper
+
+        updateCodeOwnerRules(project.basePath)
     }
 
-    fun getFileCodeOwnerState(project: Project, file: VirtualFile): FileCodeOwnerState {
-        val stateWithProjectBaseDir = findRuleInRulesMap(file, project.basePath)
+    fun getFileCodeOwnerState(file: VirtualFile): FileCodeOwnerState {
+        val stateWithProjectBaseDir = findRuleInRulesMap(file)
         if (null != stateWithProjectBaseDir) {
             return stateWithProjectBaseDir
-        } else {
-            updateCodeOwnerRules(project.basePath)
         }
 
-        val fileBaseDir = filesHelper.getBaseDir(ModuleManager.getInstance(project), file)
-        val stateWithFileBaseDir = findRuleInRulesMap(file, fileBaseDir)
-        if (null != stateWithFileBaseDir) {
-            return stateWithFileBaseDir
-        } else {
-            updateCodeOwnerRules(fileBaseDir)
-        }
-
-        return if (codeOwnerRuleGlobsMap.isEmpty()) {
+        return if (codeOwnerRuleGlobs.isEmpty()) {
             FileCodeOwnerState.NoCodeOwnerFileFound
         } else {
             val codeOwnerRule = matchCodeOwnerRuleForFile(file)
@@ -60,12 +52,10 @@ internal class CodeOwnerService {
         }
     }
 
-    private fun findRuleInRulesMap(file: VirtualFile, baseDirPath: String?): FileCodeOwnerState? {
-        if (codeOwnerRuleGlobsMap.keys.any { it.baseDirPath == baseDirPath }) {
-            val codeOwnerRule = matchCodeOwnerRuleForFile(file)
-            if (null != codeOwnerRule) {
-                return FileCodeOwnerState.RuleFoundInCodeOwnerFile(codeOwnerRule)
-            }
+    private fun findRuleInRulesMap(file: VirtualFile): FileCodeOwnerState? {
+        val codeOwnerRule = matchCodeOwnerRuleForFile(file)
+        if (null != codeOwnerRule) {
+            return FileCodeOwnerState.RuleFoundInCodeOwnerFile(codeOwnerRule)
         }
         return null
     }
@@ -75,7 +65,7 @@ internal class CodeOwnerService {
     }
 
     private fun matchCodeOwnerRuleForFile(file: VirtualFile): CodeOwnerRule? =
-        codeOwnerRuleGlobsMap.values.flatten().lastOrNull {
+        codeOwnerRuleGlobs.lastOrNull {
             ruleGlobMatcher.matches(it, file.path)
         }?.codeOwnerRule
 
@@ -93,27 +83,21 @@ internal class CodeOwnerService {
             }
             .filterNotNull()
             .toCollection(LinkedHashSet())
-
-        val commonPredicate = findCommonPredicate(codeOwnerRules)
-        commonCodeOwnerPrefix = commonPredicate
-        val updatedCodeOwnerRules = if (commonPredicate.isNotBlank()) {
-            codeOwnerRules.map { rule ->
-                rule.copy(owners = rule.owners.map { it.removePrefix(commonPredicate) })
+            .also { rules ->
+                val commonPredicate = findCommonPredicate(rules)
+                commonCodeOwnerPrefix = commonPredicate
+                if (commonPredicate.isNotBlank()) {
+                    rules.forEach { rule ->
+                        rule.owners = rule.owners.map { it.removePrefix(commonPredicate) }
+                    }
+                }
             }
-        } else {
-            codeOwnerRules
-        }
+            .map { rule ->
+                RuleGlob(rule, baseDirPath)
+            }
 
-        val codeOwnerRulesSet = codeOwnerRuleGlobsMap.getOrPut(
-            CodeOwnerFile(
-                file = codeOwnerFile,
-                baseDirPath = baseDirPath,
-            )
-        ) { linkedSetOf() }
-
-        for (rule in updatedCodeOwnerRules) {
-            codeOwnerRulesSet.add(RuleGlob(rule, baseDirPath))
-        }
+        codeOwnerRuleGlobs.addAll(codeOwnerRules)
+        this.codeOwnerFile = codeOwnerFile
     }
 
     private fun findCommonPredicate(codeOwnerRules: Set<CodeOwnerRule>): String {
@@ -124,15 +108,9 @@ internal class CodeOwnerService {
     }
 
     fun refreshCodeOwnerRules(project: Project) {
-        codeOwnerRuleGlobsMap.clear()
+        codeOwnerRuleGlobs.clear()
         updateCodeOwnerRules(project.basePath)
     }
 
-    fun getCodeOwnerFileForRule(codeOwnerRule: CodeOwnerRule): File? {
-        return codeOwnerRuleGlobsMap
-            .entries
-            .firstOrNull { (_, ruleGlobs) -> ruleGlobs.any { it.codeOwnerRule == codeOwnerRule } }
-            ?.key
-            ?.file
-    }
+    fun getCodeOwnerFile(): File? = codeOwnerFile
 }

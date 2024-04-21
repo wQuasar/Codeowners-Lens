@@ -31,11 +31,11 @@ internal class CommitCodeOwnersAction : AnAction(), CommitCodeOwnersActionView {
     lateinit var balloonPopupHelper: BalloonPopupHelper
 
     override fun update(actionEvent: AnActionEvent) {
-        actionEvent.project?.let {
+        actionEvent.project?.let { project ->
             presenter.view = this
-            presenter.project = it
-            presenter.codeOwnerService = it.getService(CodeOwnerService::class.java).apply {
-                init(ruleGlobMatcher, filesHelper)
+            presenter.project = project
+            presenter.codeOwnerService = project.getService(CodeOwnerService::class.java).apply {
+                init(project, ruleGlobMatcher, filesHelper)
             }
         } ?: run {
             actionEvent.presentation.isVisible = false
