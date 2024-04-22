@@ -55,7 +55,7 @@ internal class CommitCodeOwnersAction : AnAction(), CommitCodeOwnersActionView {
     override fun showCodeOwnersEditedPopup(actionEvent: AnActionEvent) {
         balloonPopupHelper.createAndShowBalloonPopupAboveComponent(
             actionEvent = actionEvent,
-            message = "Codeowners file is edited. Codeowner info may be incorrect.",
+            message = "CODEOWNERS file is edited.",
             messageType = MessageType.WARNING,
             duration = 8000,
         )
@@ -71,7 +71,7 @@ internal class CommitCodeOwnersAction : AnAction(), CommitCodeOwnersActionView {
     override fun showNoCodeOwnersFilePopup(actionEvent: AnActionEvent) {
         balloonPopupHelper.createAndShowBalloonPopupAboveComponent(
             actionEvent = actionEvent,
-            message = "No CODEOWNERS file found for modified files.",
+            message = "No CODEOWNERS file found.",
         )
     }
 

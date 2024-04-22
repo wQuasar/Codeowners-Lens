@@ -94,7 +94,7 @@ internal class CommitCodeOwnersActionPresenter @Inject constructor(
             }
         }
 
-        return if (isNoCodeOwnerFileFound(currentChangeListWithOwnersList)) {
+        return if (isNoCodeOwnerFileFound()) {
             NoCodeOwnerFileFound(
                 changeListWithOwnersList = currentChangeListWithOwnersList,
             )
@@ -106,9 +106,7 @@ internal class CommitCodeOwnersActionPresenter @Inject constructor(
         }
     }
 
-    private fun isNoCodeOwnerFileFound(changeLists: MutableList<ChangeListWithOwners>): Boolean {
-        return changeLists.singleOrNull()?.codeOwnersMap?.keys?.first() == listOf(NO_CODEOWNER)
-    }
+    private fun isNoCodeOwnerFileFound(): Boolean = null == codeOwnerService.getCodeOwnerFile()
 
     private fun getCodeOwnerMapForChangelist(fileChanges: MutableCollection<Change>):
             HashMap<List<String>, MutableList<VirtualFile>> {
