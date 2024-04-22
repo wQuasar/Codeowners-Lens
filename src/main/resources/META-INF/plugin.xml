@@ -1,27 +1,46 @@
-<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>com.wquasar.codeowners.lens</id>
 
     <name>Codeowners Lens</name>
 
-    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor email="shaishavsaraswat@zoho.com" url="https://www.mycompany.com">Shaishav Saraswat</vendor>
+    <vendor email="shaishavsaraswat@zoho.com" url="https://github.com/wQuasar/Codeowners-Lens">Shaishav Saraswat</vendor>
 
-    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
-         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
-         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
-    A plugin to display current file's codeowner in the Status Bar<br>
-    <em>[WIP]</em>
-  ]]></description>
+Simplify your pull request workflow with clear codeownership visibility!<br>
+<BR>
+<P>This plugin integrates with your GitHub's CODEOWNERS file to provide valuable codeowner insights directly within your IntelliJ IDEA IDE.</P>
 
-    <!-- Product and plugin compatibility requirements.
-         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+<H2>Key Features:</H2>
+<UL>
+<LI> <B>Real-time Codeowner Awareness:</B>
+    <UL>
+    <LI> View the current file's codeowner(s) conveniently displayed in the <b>status bar</b>.</LI>
+    <LI> Stay informed about who owns the code you're modifying.</LI>
+    </UL>
+</LI>
+<LI> <B>Effortless Approval Assessment:</B>
+    <UL>
+    <LI> In the <B>Commit window</B>, see a clear breakdown of codeowners for all files in your changelist at the click of a button.</LI>
+    <LI> Grouped by codeowner names, this overview helps you identify the individuals who might need to approve your pull request.</LI>
+    </UL>
+</LI>
+
+<H2>Benefits:</H2>
+<UL>
+    <LI> <B>Streamlined Collaboration:</B> Enhance communication and collaboration by readily identifying relevant codeowners.</LI>
+    <LI> <B>Improved Efficiency:</B> Expedite your pull request process by knowing who to target for approvals.</LI>
+    <LI> <B>Reduced Friction:</B> Minimize confusion and delays by having clear codeownership knowledge at your fingertips.</LI>
+</UL>
+
+<H2>Getting Started:</H2>
+Install the plugin and leverage its intuitive features to gain valuable insights into codeownership for your GitHub projects.
+
+<H2>Compatibility:</H2>
+This plugin requires a GitHub repository with a properly configured CODEOWNERS file.
+]]></description>
+
     <depends>com.intellij.modules.platform</depends>
 
-    <!-- Extension points defined by the plugin.
-         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
         <statusBarWidgetFactory implementation="com.wquasar.codeowners.lens.widget.statusbar.CodeOwnerNameWidgetFactory"
                                 id="com.wquasar.codeowners.lens.CodeOwnerNameWidget"/>

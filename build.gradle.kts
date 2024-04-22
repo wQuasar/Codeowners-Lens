@@ -13,8 +13,6 @@ repositories {
     mavenCentral()
 }
 
-// Configure Gradle IntelliJ Plugin
-// Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
     version.set(libs.versions.intellijPlugin.get())
     type.set("IC") // Target IDE Platform
@@ -23,7 +21,6 @@ intellij {
 }
 
 tasks {
-    // Set the JVM compatibility versions
     withType<JavaCompile> {
         sourceCompatibility = libs.versions.jvmVersion.get()
         targetCompatibility = libs.versions.jvmVersion.get()
