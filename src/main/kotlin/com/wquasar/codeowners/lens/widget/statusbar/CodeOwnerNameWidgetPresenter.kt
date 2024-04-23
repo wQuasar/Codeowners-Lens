@@ -16,6 +16,8 @@ import com.wquasar.codeowners.lens.core.FileCodeOwnerState.RuleFoundInCodeOwnerF
 import com.wquasar.codeowners.lens.core.FileCodeOwnerState.NoCodeOwnerFileFound
 import com.wquasar.codeowners.lens.core.FileCodeOwnerState.NoRuleFoundInCodeOwnerFile
 import com.wquasar.codeowners.lens.file.FilesHelper
+import java.util.ResourceBundle
+import java.util.Locale
 import javax.swing.SwingConstants
 
 internal class CodeOwnerNameWidgetPresenter(
@@ -26,13 +28,14 @@ internal class CodeOwnerNameWidgetPresenter(
 
     companion object {
         const val ID = "com.wquasar.codeowners.lens.CodeOwnerNameWidget"
-        const val NO_CODEOWNER = "¯\\_(ツ)_/¯"
     }
 
     lateinit var view: CodeOwnerNameWidgetView
 
     private var currentOrSelectedFile: VirtualFile? = null
     private var currentFileRuleOwnerState: FileCodeOwnerState? = null
+
+    private val messages = ResourceBundle.getBundle("messages", Locale.getDefault())
 
     fun getID(): String = ID
 
@@ -45,16 +48,26 @@ internal class CodeOwnerNameWidgetPresenter(
 
         currentFileRuleOwnerState = getCurrentFileCodeOwnerState()
         return when (currentFileRuleOwnerState) {
-            NoRuleFoundInCodeOwnerFile -> NO_CODEOWNER
+            NoRuleFoundInCodeOwnerFile -> messages.getString("statusbar.unknown_codeowner_label")
             is RuleFoundInCodeOwnerFile -> {
                 val owners = currentFileRuleOwnerState?.let {
                     (it as RuleFoundInCodeOwnerFile).codeOwnerRule.owners
                 } ?: return ""
                 when {
-                    owners.isEmpty() -> NO_CODEOWNER
+                    owners.isEmpty() -> messages.getString("statusbar.unknown_codeowner_label")
                     owners.size == 1 -> owners.first()
-                    owners.size == 2 -> "${owners.first()} & ${owners.last()}"
-                    else -> "${owners.first()}, ${owners[1]} & ${owners.size - 2} more"
+                    owners.size == 2 -> String.format(
+                        messages.getString("statusbar.two_codeowners_display_label"),
+                        owners.first(),
+                        owners.last(),
+                    )
+
+                    else -> String.format(
+                        messages.getString("statusbar.more_than_two_codeowners_display_label"),
+                        owners.first(),
+                        owners[1],
+                        owners.size - 2,
+                    )
                 }
             }
 
@@ -78,13 +91,13 @@ internal class CodeOwnerNameWidgetPresenter(
     fun getTooltipText(): String {
         return when (val fileCodeOwnerState = currentFileRuleOwnerState) {
             is NoCodeOwnerFileFound -> ""
-            is NoRuleFoundInCodeOwnerFile -> "No codeowners found"
+            is NoRuleFoundInCodeOwnerFile -> messages.getString("statusbar.no_codeowner_label_msg")
             is RuleFoundInCodeOwnerFile -> {
                 val owners = fileCodeOwnerState.codeOwnerRule.owners
                 when {
-                    owners.isEmpty() -> "No codeowners found"
-                    owners.size == 1 -> "Click to show in CODEOWNERS"
-                    else -> "Click to show all codeowners"
+                    owners.isEmpty() -> messages.getString("statusbar.no_codeowner_label_msg")
+                    owners.size == 1 -> messages.getString("statusbar.click_to_show_codeowner_rule_msg")
+                    else -> messages.getString("statusbar.click_to_show_all_codeowners_msg")
                 }
             }
 
@@ -121,7 +134,7 @@ internal class CodeOwnerNameWidgetPresenter(
                 }
             }
         )
-        popup.setAdText("All codeowners", SwingConstants.CENTER)
+        popup.setAdText(messages.getString("statusbar.all_codeowners_popup_title"), SwingConstants.CENTER)
         return popup
     }
 

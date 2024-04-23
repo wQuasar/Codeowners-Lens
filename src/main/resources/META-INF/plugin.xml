@@ -31,12 +31,6 @@ Simplify your pull request workflow with clear codeownership visibility!<br>
     <LI> <B>Improved Efficiency:</B> Expedite your pull request process by knowing who to target for approvals.</LI>
     <LI> <B>Reduced Friction:</B> Minimize confusion and delays by having clear codeownership knowledge at your fingertips.</LI>
 </UL>
-
-<H2>Getting Started:</H2>
-Install the plugin and leverage its intuitive features to gain valuable insights into codeownership for your GitHub projects.
-
-<H2>Compatibility:</H2>
-This plugin requires a GitHub repository with a properly configured CODEOWNERS file.
 ]]></description>
 
     <depends>com.intellij.modules.platform</depends>

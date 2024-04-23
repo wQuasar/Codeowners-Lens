@@ -10,6 +10,8 @@ import com.wquasar.codeowners.lens.di.CodeOwnersComponentProvider
 import com.wquasar.codeowners.lens.file.FilesHelper
 import com.wquasar.codeowners.lens.glob.RuleGlobMatcher
 import com.wquasar.codeowners.lens.ui.BalloonPopupHelper
+import java.util.ResourceBundle
+import java.util.Locale
 import javax.inject.Inject
 
 internal class CommitCodeOwnersAction : AnAction(), CommitCodeOwnersActionView {
@@ -29,6 +31,8 @@ internal class CommitCodeOwnersAction : AnAction(), CommitCodeOwnersActionView {
 
     @Inject
     lateinit var balloonPopupHelper: BalloonPopupHelper
+    
+    private val messages = ResourceBundle.getBundle("messages", Locale.getDefault())
 
     override fun update(actionEvent: AnActionEvent) {
         actionEvent.project?.let { project ->
@@ -55,7 +59,7 @@ internal class CommitCodeOwnersAction : AnAction(), CommitCodeOwnersActionView {
     override fun showCodeOwnersEditedPopup(actionEvent: AnActionEvent) {
         balloonPopupHelper.createAndShowBalloonPopupAboveComponent(
             actionEvent = actionEvent,
-            message = "CODEOWNERS file is edited.",
+            message = messages.getString("commit.codeowners_file_edited_msg"),
             messageType = MessageType.WARNING,
             duration = 8000,
         )
@@ -64,14 +68,14 @@ internal class CommitCodeOwnersAction : AnAction(), CommitCodeOwnersActionView {
     override fun showEmptyChangelistPopup(actionEvent: AnActionEvent) {
         balloonPopupHelper.createAndShowBalloonPopupAboveComponent(
             actionEvent = actionEvent,
-            message = "No files modified.",
+            message = messages.getString("commit.no_modified_files_msg"),
         )
     }
 
     override fun showNoCodeOwnersFilePopup(actionEvent: AnActionEvent) {
         balloonPopupHelper.createAndShowBalloonPopupAboveComponent(
             actionEvent = actionEvent,
-            message = "No CODEOWNERS file found.",
+            message = messages.getString("commit.no_codeowner_file_msg"),
         )
     }
 

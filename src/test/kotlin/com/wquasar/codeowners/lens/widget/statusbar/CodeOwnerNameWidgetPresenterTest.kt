@@ -60,7 +60,7 @@ internal class CodeOwnerNameWidgetPresenterTest {
         presenter.updateState(virtualFile)
         whenever(codeOwnerService.getFileCodeOwnerState(virtualFile, null)).thenReturn(NoRuleFoundInCodeOwnerFile)
         val result = presenter.getSelectedValue()
-        assertEquals(CodeOwnerNameWidgetPresenter.NO_CODEOWNER, result)
+        assertEquals("¯\\_(ツ)_/¯", result)
     }
 
     @Test

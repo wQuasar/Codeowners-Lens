@@ -17,10 +17,10 @@ import com.wquasar.codeowners.lens.file.FilesHelper
 import com.wquasar.codeowners.lens.ui.addPopupActionItem
 import com.wquasar.codeowners.lens.ui.addPopupSection
 import java.awt.event.MouseEvent
+import java.util.ResourceBundle
+import java.util.Locale
 import javax.inject.Inject
 import javax.swing.JComponent
-
-private const val NO_CODEOWNER = "¯\\__(ツ)__/¯"
 
 internal class CommitCodeOwnersActionPresenter @Inject constructor(
     private val filesHelper: FilesHelper,
@@ -30,6 +30,8 @@ internal class CommitCodeOwnersActionPresenter @Inject constructor(
     lateinit var view: CommitCodeOwnersActionView
     lateinit var project: Project
     lateinit var codeOwnerService: CodeOwnerService
+
+    private val messages = ResourceBundle.getBundle("messages", Locale.getDefault())
 
     fun isGitEnabled(): Boolean {
         return ProjectLevelVcsManager.getInstance(project).checkVcsIsActive("Git")
@@ -125,7 +127,7 @@ internal class CommitCodeOwnersActionPresenter @Inject constructor(
                     codeOwnerState is FileCodeOwnerState.NoCodeOwnerFileFound
                 ) {
                     codeOwnerMap
-                        .getOrPut(listOf(NO_CODEOWNER)) { mutableListOf() }
+                        .getOrPut(listOf(messages.getString("commit.unknown_codeowner_label"))) { mutableListOf() }
                         .apply { add(file) }
                 }
             }
@@ -161,7 +163,9 @@ internal class CommitCodeOwnersActionPresenter @Inject constructor(
         changeList: ChangeListWithOwners?,
     ) {
         changeList ?: return
-        addPopupSection("Codeowners for '${changeList.listLabel}'")
+        addPopupSection(
+            String.format(messages.getString("commit.default_changelist_codeowners_popup_title"), changeList.listLabel)
+        )
         add(getIndividualCodeOwnersActionGroup(changeList.codeOwnersMap))
     }
 
@@ -171,10 +175,13 @@ internal class CommitCodeOwnersActionPresenter @Inject constructor(
         if (changeLists.isEmpty()) return
 
         add(Separator())
-        addPopupSection("Other Changelists")
+        addPopupSection(messages.getString("commit.other_changelists_label"))
 
         changeLists.forEach {
-            add(DefaultActionGroup("▹ '${it.listLabel}'", true).apply {
+            add(DefaultActionGroup(
+                String.format(messages.getString("commit.popup_other_changelist_label"), it.listLabel,),
+                true
+            ).apply {
                 add(getIndividualCodeOwnersActionGroup(it.codeOwnersMap))
             })
         }
@@ -188,7 +195,13 @@ internal class CommitCodeOwnersActionPresenter @Inject constructor(
                 if (modifiedOwnedFiles.isEmpty()) return@forEach
 
                 add(DefaultActionGroup().apply {
-                    add(DefaultActionGroup("${owner.joinToString(", ")} \t[${modifiedOwnedFiles.size}]", true).apply {
+                    add(DefaultActionGroup(
+                        String.format(
+                            messages.getString("commit.popup_codeowners_label"),
+                            owner.joinToString(", "),
+                            modifiedOwnedFiles.size,
+                        ), true
+                    ).apply {
                         modifiedOwnedFiles.forEach { file ->
                             addPopupActionItem(filesHelper.getTruncatedFileName(file)) {
                                 filesHelper.openFile(project, file)
