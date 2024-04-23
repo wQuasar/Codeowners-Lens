@@ -6,9 +6,7 @@
     <vendor email="shaishavsaraswat@zoho.com" url="https://github.com/wQuasar/Codeowners-Lens">Shaishav Saraswat</vendor>
 
     <description><![CDATA[
-Simplify your pull request workflow with clear codeownership visibility!<br>
-<BR>
-<P>This plugin integrates with your GitHub's CODEOWNERS file to provide valuable codeowner insights directly within your IntelliJ IDEA IDE.</P>
+Simplify your pull request workflow with clear codeownership visibility! This plugin integrates with your <A href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners">GitHub's CODEOWNERS file</A> to provide valuable codeowner insights directly within your IntelliJ IDEA IDE.
 
 <H2>Key Features:</H2>
 <UL>
