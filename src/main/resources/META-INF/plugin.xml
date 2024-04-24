@@ -6,28 +6,30 @@
     <vendor email="shaishavsaraswat@zoho.com" url="https://github.com/wQuasar/Codeowners-Lens">Shaishav Saraswat</vendor>
 
     <description><![CDATA[
-Simplify your pull request workflow with clear codeownership visibility! This plugin integrates with your <A href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners">GitHub's CODEOWNERS file</A> to provide valuable codeowner insights directly within your IntelliJ IDEA IDE.
+Simplify your pull request workflow with clear codeownership visibility!<BR><BR>
 
-<H2>Key Features:</H2>
+<P>This plugin integrates with your <A href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners">GitHub's CODEOWNERS file</A> to provide valuable codeowner insights directly within your IntelliJ IDEA IDE.</P>
+
+<H3>Key Features</H3>
 <UL>
 <LI> <B>Real-time Codeowner Awareness:</B>
     <UL>
-    <LI> View the current file's codeowner(s) conveniently displayed in the <b>status bar</b>.</LI>
+    <LI> View the current file's codeowner(s) conveniently displayed in the <b>Status Bar</b>.</LI>
     <LI> Stay informed about who owns the code you're modifying.</LI>
     </UL>
 </LI>
 <LI> <B>Effortless Approval Assessment:</B>
     <UL>
-    <LI> In the <B>Commit window</B>, see a clear breakdown of codeowners for all files in your changelist at the click of a button.</LI>
+    <LI> In the <B>Commit Window/Toolbar</B>, see a clear breakdown of codeowners for all files in your changelist at the click of a button.</LI>
     <LI> Grouped by codeowner names, this overview helps you identify the individuals who might need to approve your pull request.</LI>
     </UL>
 </LI>
 
-<H2>Benefits:</H2>
+<H3>Benefits</H3>
 <UL>
     <LI> <B>Streamlined Collaboration:</B> Enhance communication and collaboration by readily identifying relevant codeowners.</LI>
     <LI> <B>Improved Efficiency:</B> Expedite your pull request process by knowing who to target for approvals.</LI>
-    <LI> <B>Reduced Friction:</B> Minimize confusion and delays by having clear codeownership knowledge at your fingertips.</LI>
+    <LI> <B>Reduced Friction:</B> Minimize confusion and delays by having clear codeownership knowledge.</LI>
 </UL>
 ]]></description>
 
