@@ -1,10 +1,9 @@
 [versions]
-kotlin = "1.9.21"
-intellij = "1.16.1"
+kotlin = "2.0.20"
+intellij = "2.0.1"
 sinceBuild = "231"
-untilBuild = "241.*"
-jvmVersion = "17"
-intellijPlugin = "2023.1.5"
+untilBuild = "242.*"
+intellijPlugin = "2024.1.5"
 dagger = "2.10"
 mockito = "4.2.0"
 mockitoKotlin = "4.0.0"
@@ -15,9 +14,10 @@ dagger = { group = "com.google.dagger", name = "dagger", version.ref = "dagger" 
 daggerKapt = { group = "com.google.dagger", name = "dagger-compiler", version.ref = "dagger" }
 mockito = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
 mockitoKotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
+mockitoInline = { group = "org.mockito", name = "mockito-inline", version.ref = "mockitoKotlin" }
 
 [plugins]
 jetBrainsKotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-jetBrainsIntellij = { id = "org.jetbrains.intellij", version.ref = "intellij" }
+jetBrainsIntellij = { id = "org.jetbrains.intellij.platform", version.ref = "intellij" }
 kotlinKapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
