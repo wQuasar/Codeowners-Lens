@@ -19,6 +19,5 @@ mockitoInline = { group = "org.mockito", name = "mockito-inline", version.ref = 
 [plugins]
 jetBrainsKotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 jetBrainsIntellij = { id = "org.jetbrains.intellij.platform", version.ref = "intellij" }
-jetBrainsIntellijMigration = { id = "org.jetbrains.intellij.platform.migration", version.ref = "intellij" }
 kotlinKapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

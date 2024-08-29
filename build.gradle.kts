@@ -5,13 +5,10 @@ plugins {
     id("java")
     alias(libs.plugins.jetBrainsKotlin)
     alias(libs.plugins.jetBrainsIntellij)
-    alias(libs.plugins.jetBrainsIntellijMigration)
     alias(libs.plugins.kotlinKapt)
     alias(libs.plugins.detekt)
 }
 
-group = "com.wquasar"
-version = "0.6.1"
 
 repositories {
     mavenCentral()
@@ -25,6 +22,7 @@ dependencies {
     intellijPlatform {
         create("IC", libs.versions.intellijPlugin.get())
         instrumentationTools()
+        zipSigner()
     }
 
     testImplementation(kotlin("test"))
@@ -40,11 +38,25 @@ intellijPlatform {
     buildSearchableOptions = true
     instrumentCode = true
     projectName = project.name
+
+    group = "com.wquasar"
+    version = "0.6.2"
+
     pluginConfiguration {
         ideaVersion {
             sinceBuild = libs.versions.sinceBuild.get()
             untilBuild = libs.versions.untilBuild.get()
         }
+    }
+
+    signing {
+        certificateChain = providers.environmentVariable("CERTIFICATE_CHAIN")
+        privateKey = providers.environmentVariable("PRIVATE_KEY")
+        password = providers.environmentVariable("PRIVATE_KEY_PASSWORD")
+    }
+
+    publishing {
+        token = providers.environmentVariable("PUBLISH_TOKEN")
     }
 }
 
@@ -63,15 +75,5 @@ tasks {
 
     test {
         useJUnit()
-    }
-
-    signPlugin {
-        certificateChain.set(providers.environmentVariable("CERTIFICATE_CHAIN"))
-        privateKey.set(providers.environmentVariable("PRIVATE_KEY"))
-        password.set(providers.environmentVariable("PRIVATE_KEY_PASSWORD"))
-    }
-
-    publishPlugin {
-        token.set(providers.environmentVariable("PUBLISH_TOKEN"))
     }
 }
