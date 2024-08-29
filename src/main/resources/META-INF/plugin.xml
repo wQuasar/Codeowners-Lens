@@ -9,7 +9,7 @@
     <description><![CDATA[
     Simplify your pull request workflow with clear codeownership visibility!<BR><BR>
 
-    <P>This plugin integrates with your <A href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners">GitHub's CODEOWNERS file</A> to provide valuable codeowner insights directly within your IntelliJ IDEA IDE.</P>
+    <P>This is a lightweight plugin that integrates with your <A href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners">GitHub's CODEOWNERS file</A> to provide valuable codeowner insights directly within your IntelliJ IDEA IDE.</P>
 
     <H3>Key Features</H3>
     <UL>

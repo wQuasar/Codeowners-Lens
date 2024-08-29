@@ -143,7 +143,7 @@ internal class CommitCodeOwnersActionPresenter @Inject constructor(
 
         (actionEvent.inputEvent as? MouseEvent)?.let { mouseEvent ->
             val point = mouseEvent.point
-            (actionEvent.inputEvent.component as? JComponent)?.let { component ->
+            (actionEvent.inputEvent?.component as? JComponent)?.let { component ->
                 val actionGroup = DefaultActionGroup().apply {
                     addDefaultChangeList(changeListWithOwners.firstOrNull { it.isDefault })
                     addOtherChangelists(changeListWithOwners.filter { it.isDefault.not() })
@@ -179,7 +179,7 @@ internal class CommitCodeOwnersActionPresenter @Inject constructor(
 
         changeLists.forEach {
             add(DefaultActionGroup(
-                String.format(messages.getString("commit.popup_other_changelist_label"), it.listLabel,),
+                String.format(messages.getString("commit.popup_other_changelist_label"), it.listLabel),
                 true
             ).apply {
                 add(getIndividualCodeOwnersActionGroup(it.codeOwnersMap))

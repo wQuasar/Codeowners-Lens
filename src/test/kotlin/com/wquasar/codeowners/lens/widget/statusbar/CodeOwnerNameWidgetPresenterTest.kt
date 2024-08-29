@@ -25,7 +25,7 @@ internal class CodeOwnerNameWidgetPresenterTest {
     private val filesHelper: FilesHelper = mock()
     private val view: CodeOwnerNameWidgetView = mock()
     private val statusBar: StatusBar = mock()
-    private val virtualFile: VirtualFile = mock() {
+    private val virtualFile: VirtualFile = mock {
         on { isInLocalFileSystem }.thenReturn(true)
     }
 

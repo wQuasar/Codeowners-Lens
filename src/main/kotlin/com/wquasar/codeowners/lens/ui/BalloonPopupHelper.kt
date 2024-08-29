@@ -17,7 +17,7 @@ internal class BalloonPopupHelper @Inject constructor() {
         messageType: MessageType = MessageType.INFO,
         duration: Long = 5000,
     ) {
-        val component = actionEvent.inputEvent.component as? JComponent ?: return
+        val component = actionEvent.inputEvent?.component as? JComponent ?: return
         val displayPoint = RelativePoint(component, Point(component.width / 2, 0))
         val balloon = createBalloonPopup(
             message = message,
