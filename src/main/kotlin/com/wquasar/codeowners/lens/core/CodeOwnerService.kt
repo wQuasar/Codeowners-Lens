@@ -65,11 +65,13 @@ internal class CodeOwnerService {
             .filterNotNull()
             .toCollection(LinkedHashSet())
             .also { rules ->
-                val commonPredicate = findCommonPredicate(rules)
-                commonCodeOwnerPrefix = commonPredicate
-                if (commonPredicate.isNotBlank()) {
-                    rules.forEach { rule ->
-                        rule.owners = rule.owners.map { it.removePrefix(commonPredicate) }
+                if (rules.isNotEmpty()) {
+                    val commonPredicate = findCommonPredicate(rules)
+                    commonCodeOwnerPrefix = commonPredicate
+                    if (commonPredicate.isNotBlank()) {
+                        rules.forEach { rule ->
+                            rule.owners = rule.owners.map { it.removePrefix(commonPredicate) }
+                        }
                     }
                 }
             }
