@@ -83,6 +83,7 @@ internal class CodeOwnerService {
 
     private fun findCommonPredicate(codeOwnerRules: Set<CodeOwnerRule>): String {
         val allOwners = codeOwnerRules.flatMap { it.owners }
+        if (allOwners.isEmpty()) return ""
         val commonPrefix = allOwners.reduce { acc, owner -> acc.commonPrefixWith(owner) }
         val lastSlashIndex = commonPrefix.lastIndexOf("/")
         return if (lastSlashIndex != -1) commonPrefix.substring(0, lastSlashIndex + 1) else ""

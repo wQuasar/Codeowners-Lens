@@ -40,7 +40,7 @@ intellijPlatform {
     projectName = project.name
 
     group = "com.wquasar"
-    version = "0.6.3"
+    version = "0.6.4"
 
     pluginConfiguration {
         ideaVersion {
