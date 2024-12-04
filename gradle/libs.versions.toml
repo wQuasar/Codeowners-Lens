@@ -7,7 +7,7 @@ intellijPlugin = "2024.1.5"
 dagger = "2.10"
 mockito = "4.2.0"
 mockitoKotlin = "4.0.0"
-detekt = "1.23.6"
+detekt = "1.23.7"
 
 [libraries]
 dagger = { group = "com.google.dagger", name = "dagger", version.ref = "dagger" }
