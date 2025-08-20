@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.0.20"
+kotlin = "2.1.0"
 intellij = "2.0.1"
 sinceBuild = "231"
 untilBuild = "252.*"
