@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.0.20"
-intellij = "2.0.1"
+intellij = "2.3.0"
 sinceBuild = "231"
 untilBuild = "252.*"
 intellijPlugin = "2024.1.5"
