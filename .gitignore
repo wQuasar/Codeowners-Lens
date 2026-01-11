@@ -1,6 +1,10 @@
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
+# IntelliJ Plugin Build
+intellij/.gradle/
+intellij/build/
+intellij/out/
+intellij/.intellijPlatform/
+intellij/.kotlin/
+!intellij/gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -9,12 +13,15 @@ build/
 .idea/jarRepositories.xml
 .idea/compiler.xml
 .idea/libraries/
+.idea/copilot.data.migration.*.xml
 *.iws
 *.iml
 *.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
+
+### VS Code Extension ###
+vscode/node_modules/
+vscode/out/
+vscode/*.vsix
 
 ### Mac OS ###
 .DS_Store

@@ -1,0 +1,68 @@
+{
+  "name": "codeowners-lens",
+  "displayName": "Codeowners Lens",
+  "description": "Simplify your pull request workflow with clear codeownership visibility!",
+  "version": "1.0.0",
+  "publisher": "shaishav-saraswat",
+  "icon": "resources/icon.png",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "codeowners",
+    "github",
+    "git",
+    "code review",
+    "ownership"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codeowners-lens.showCodeowners",
+        "title": "Show Codeowners for Changed Files",
+        "icon": {
+          "light": "resources/icon-light.svg",
+          "dark": "resources/icon-dark.svg"
+        }
+      },
+      {
+        "command": "codeowners-lens.refreshCodeowners",
+        "title": "Refresh Codeowners",
+        "icon": "$(refresh)"
+      }
+    ],
+    "menus": {
+      "scm/title": [
+        {
+          "command": "codeowners-lens.showCodeowners",
+          "group": "navigation",
+          "when": "scmProvider == git"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.80.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "minimatch": "^9.0.3"
+  }
+}
