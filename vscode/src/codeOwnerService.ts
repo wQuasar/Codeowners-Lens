@@ -39,7 +39,10 @@ export class CodeOwnerService {
         }
 
         const relativePath = path.relative(this.workspaceRoot, fileUri.fsPath);
-        return this.findRuleInRulesMap(relativePath);
+        console.log(`[CodeOwners] Looking for owner of file: "${relativePath}" (workspace: ${this.workspaceRoot})`);
+        const result = this.findRuleInRulesMap(relativePath);
+        console.log(`[CodeOwners] Result: ${FileCodeOwnerStateType[result.type]}, rule: ${result.codeOwnerRule?.pattern}`);
+        return result;
     }
 
     private findRuleInRulesMap(relativePath: string): FileCodeOwnerState {
@@ -87,12 +90,15 @@ export class CodeOwnerService {
             lines.forEach((line, index) => {
                 const trimmedLine = line.trim();
                 if (trimmedLine && !trimmedLine.startsWith('#')) {
-                    const parts = trimmedLine.split(/\s+/);
+                    const parts = trimmedLine.split(/\s+/).filter(p => p.length > 0);
                     if (parts.length >= 2) {
                         const rule = parseCodeOwnerLine(index, parts);
                         if (rule) {
+                            console.log(`[CodeOwners] Parsed rule: pattern="${rule.pattern}", owners=${JSON.stringify(rule.owners)}`);
                             codeOwnerRules.push(rule);
                         }
+                    } else {
+                        console.warn(`[CodeOwners] Line ${index} has insufficient parts: "${trimmedLine}"`);
                     }
                 }
             });

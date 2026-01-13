@@ -1,0 +1,11 @@
+{
+  "No CODEOWNERS file found.": "Keine CODEOWNERS-Datei gefunden.",
+  "No files modified.": "Keine Dateien geändert.",
+  "CODEOWNERS file is edited.": "CODEOWNERS-Datei bearbeitet.",
+  "No codeowners found": "Kein Codeowner gefunden",
+  "Click to show in CODEOWNERS": "In CODEOWNERS anzeigen",
+  "Click to show all codeowners": "Alle Codeowner anzeigen",
+  "All codeowners": "Alle Codeowner",
+  "{0} & {1}": "{0} und {1}",
+  "{0}, {1} & {2} more": "{0}, {1} und {2} weitere"
+}

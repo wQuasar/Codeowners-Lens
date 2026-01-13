@@ -2,7 +2,7 @@
   "name": "codeowners-lens",
   "displayName": "Codeowners Lens",
   "description": "Simplify your pull request workflow with clear codeownership visibility!",
-  "version": "1.0.0",
+  "version": "0.6.8",
   "publisher": "shaishav-saraswat",
   "icon": "resources/icon.png",
   "engines": {
@@ -26,7 +26,7 @@
     "commands": [
       {
         "command": "codeowners-lens.showCodeowners",
-        "title": "Show Codeowners for Changed Files",
+        "title": "%command.showCodeowners.title%",
         "icon": {
           "light": "resources/icon-light.svg",
           "dark": "resources/icon-dark.svg"
@@ -34,7 +34,7 @@
       },
       {
         "command": "codeowners-lens.refreshCodeowners",
-        "title": "Refresh Codeowners",
+        "title": "%command.refreshCodeowners.title%",
         "icon": "$(refresh)"
       }
     ],
@@ -64,5 +64,6 @@
   },
   "dependencies": {
     "minimatch": "^9.0.3"
-  }
+  },
+  "l10n": "./l10n"
 }

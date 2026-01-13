@@ -1,13 +1,15 @@
 import * as vscode from 'vscode';
-import { CodeOwnerService, FileCodeOwnerStateType } from './codeOwnerService';
+import { t } from './localization';
+import { CodeOwnerServiceManager } from './codeOwnerServiceManager';
+import { FileCodeOwnerStateType } from './codeOwnerService';
 import { CodeOwnerRule } from './codeOwnerRule';
 
 export class StatusBarManager {
     private statusBarItem: vscode.StatusBarItem;
-    private codeOwnerService: CodeOwnerService;
+    private serviceManager: CodeOwnerServiceManager;
 
-    constructor(codeOwnerService: CodeOwnerService) {
-        this.codeOwnerService = codeOwnerService;
+    constructor(serviceManager: CodeOwnerServiceManager) {
+        this.serviceManager = serviceManager;
         this.statusBarItem = vscode.window.createStatusBarItem(
             vscode.StatusBarAlignment.Right,
             100
@@ -21,7 +23,13 @@ export class StatusBarManager {
             return;
         }
 
-        const fileState = this.codeOwnerService.getFileCodeOwnerState(editor.document.uri);
+        const service = this.serviceManager.getServiceForFile(editor.document.uri);
+        if (!service) {
+            this.statusBarItem.hide();
+            return;
+        }
+
+        const fileState = service.getFileCodeOwnerState(editor.document.uri);
 
         switch (fileState.type) {
             case FileCodeOwnerStateType.RuleFoundInCodeOwnerFile:
@@ -30,8 +38,8 @@ export class StatusBarManager {
                 }
                 break;
             case FileCodeOwnerStateType.NoRuleFoundInCodeOwnerFile:
-                this.statusBarItem.text = '$(question) Unknown Codeowner';
-                this.statusBarItem.tooltip = 'No codeowner rule found for this file';
+                this.statusBarItem.text = '$(question) ¯\\_(ツ)_/¯';
+                this.statusBarItem.tooltip = t('No codeowners found');
                 this.statusBarItem.command = undefined;
                 this.statusBarItem.show();
                 break;
@@ -45,20 +53,20 @@ export class StatusBarManager {
         const owners = rule.owners;
 
         if (owners.length === 0) {
-            this.statusBarItem.text = '$(question) Unknown Codeowner';
-            this.statusBarItem.tooltip = 'No codeowner rule found for this file';
+            this.statusBarItem.text = '$(question) ¯\\_(ツ)_/¯';
+            this.statusBarItem.tooltip = t('No codeowners found');
             this.statusBarItem.command = undefined;
         } else if (owners.length === 1) {
             this.statusBarItem.text = `$(shield) ${owners[0]}`;
-            this.statusBarItem.tooltip = 'Click to show codeowner rule';
+            this.statusBarItem.tooltip = t('Click to show in CODEOWNERS');
             this.statusBarItem.command = 'codeowners-lens.showCodeownerRule';
         } else if (owners.length === 2) {
-            this.statusBarItem.text = `$(shield) ${owners[0]} & ${owners[1]}`;
-            this.statusBarItem.tooltip = 'Click to show all codeowners';
+            this.statusBarItem.text = `$(shield) ${t('{0} & {1}', owners[0], owners[1])}`;
+            this.statusBarItem.tooltip = t('Click to show all codeowners');
             this.statusBarItem.command = 'codeowners-lens.showCodeownerRule';
         } else {
-            this.statusBarItem.text = `$(shield) ${owners[0]}, ${owners[1]} & ${owners.length - 2} more`;
-            this.statusBarItem.tooltip = 'Click to show all codeowners';
+            this.statusBarItem.text = `$(shield) ${t('{0}, {1} & {2} more', owners[0], owners[1], owners.length - 2)}`;
+            this.statusBarItem.tooltip = t('Click to show all codeowners');
             this.statusBarItem.command = 'codeowners-lens.showCodeownerRule';
         }
 

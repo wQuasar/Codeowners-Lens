@@ -1,0 +1,6 @@
+{
+  "displayName": "Codeowners Lens",
+  "description": "Simplifiez votre flux de travail de demande d'extraction avec une visibilité claire de la propriété du code!",
+  "command.showCodeowners.title": "Afficher les propriétaires de code pour les fichiers modifiés",
+  "command.refreshCodeowners.title": "Actualiser les propriétaires de code"
+}

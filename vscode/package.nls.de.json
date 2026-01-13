@@ -1,0 +1,6 @@
+{
+  "displayName": "Codeowners Lens",
+  "description": "Vereinfachen Sie Ihren Pull-Request-Workflow mit klarer Codebesitz-Sichtbarkeit!",
+  "command.showCodeowners.title": "Codeowner für geänderte Dateien anzeigen",
+  "command.refreshCodeowners.title": "Codeowner aktualisieren"
+}

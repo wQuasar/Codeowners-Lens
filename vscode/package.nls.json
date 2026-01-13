@@ -1,0 +1,6 @@
+{
+  "displayName": "Codeowners Lens",
+  "description": "Simplify your pull request workflow with clear codeownership visibility!",
+  "command.showCodeowners.title": "Show Codeowners for Changed Files",
+  "command.refreshCodeowners.title": "Refresh Codeowners"
+}

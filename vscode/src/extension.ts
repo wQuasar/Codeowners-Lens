@@ -1,27 +1,32 @@
 import * as vscode from 'vscode';
-import { CodeOwnerService } from './codeOwnerService';
+import { initializeLocalization, t } from './localization';
+import { CodeOwnerServiceManager } from './codeOwnerServiceManager';
 import { StatusBarManager } from './statusBarManager';
 import { CodeownerCommands } from './codeownerCommands';
 
-let codeOwnerService: CodeOwnerService;
+let serviceManager: CodeOwnerServiceManager;
 let statusBarManager: StatusBarManager;
 let codeownerCommands: CodeownerCommands;
+let fileWatchers: vscode.FileSystemWatcher[] = [];
 
 export function activate(context: vscode.ExtensionContext) {
+    // Initialize localization
+    initializeLocalization(context.extensionPath);
+
     console.log('Codeowners Lens extension is now active');
+    console.log('[CodeOwners] VS Code language:', vscode.env.language);
+    console.log('[CodeOwners] Testing localization:', t('No codeowners found'));
 
-    // Get workspace root
-    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
-
-    if (!workspaceRoot) {
+    // Check if any workspace folders exist
+    if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
         console.log('No workspace folder found, extension will not activate');
         return;
     }
 
-    // Initialize services
-    codeOwnerService = new CodeOwnerService(workspaceRoot);
-    statusBarManager = new StatusBarManager(codeOwnerService);
-    codeownerCommands = new CodeownerCommands(codeOwnerService, context);
+    // Initialize service manager
+    serviceManager = new CodeOwnerServiceManager();
+    statusBarManager = new StatusBarManager(serviceManager);
+    codeownerCommands = new CodeownerCommands(serviceManager, context);
 
     // Update status bar for the active editor
     if (vscode.window.activeTextEditor) {
@@ -61,7 +66,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.workspace.onDidSaveTextDocument(document => {
             if (document.uri.fsPath.includes('CODEOWNERS')) {
-                codeOwnerService.refreshCodeOwnerRules();
+                serviceManager.refreshServiceForFile(document.uri);
                 if (vscode.window.activeTextEditor) {
                     statusBarManager.updateStatusBar(vscode.window.activeTextEditor);
                 }
@@ -69,38 +74,77 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
-    // Listen for file system changes
-    const fileWatcher = vscode.workspace.createFileSystemWatcher('**/{.github/,docs/,}CODEOWNERS');
+    // Create file watchers for all workspace folders
+    setupFileWatchers(context);
 
+    // Listen for workspace folder changes
     context.subscriptions.push(
-        fileWatcher.onDidChange(() => {
-            codeOwnerService.refreshCodeOwnerRules();
+        vscode.workspace.onDidChangeWorkspaceFolders(event => {
+            // Add new workspace folders
+            for (const folder of event.added) {
+                serviceManager.addWorkspaceFolder(folder);
+            }
+
+            // Remove workspace folders
+            for (const folder of event.removed) {
+                serviceManager.removeWorkspaceFolder(folder);
+            }
+
+            // Recreate file watchers
+            disposeFileWatchers();
+            setupFileWatchers(context);
+
+            // Update status bar
             if (vscode.window.activeTextEditor) {
                 statusBarManager.updateStatusBar(vscode.window.activeTextEditor);
             }
         })
     );
 
-    context.subscriptions.push(
-        fileWatcher.onDidCreate(() => {
-            codeOwnerService.refreshCodeOwnerRules();
-            if (vscode.window.activeTextEditor) {
-                statusBarManager.updateStatusBar(vscode.window.activeTextEditor);
-            }
-        })
-    );
-
-    context.subscriptions.push(
-        fileWatcher.onDidDelete(() => {
-            codeOwnerService.refreshCodeOwnerRules();
-            if (vscode.window.activeTextEditor) {
-                statusBarManager.updateStatusBar(vscode.window.activeTextEditor);
-            }
-        })
-    );
-
-    context.subscriptions.push(fileWatcher);
     context.subscriptions.push(statusBarManager);
+}
+
+function setupFileWatchers(context: vscode.ExtensionContext): void {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        return;
+    }
+
+    for (const folder of workspaceFolders) {
+        const pattern = new vscode.RelativePattern(folder, '{.github/,docs/,}CODEOWNERS');
+        const fileWatcher = vscode.workspace.createFileSystemWatcher(pattern);
+
+        fileWatcher.onDidChange(uri => {
+            serviceManager.refreshServiceForFile(uri);
+            if (vscode.window.activeTextEditor) {
+                statusBarManager.updateStatusBar(vscode.window.activeTextEditor);
+            }
+        });
+
+        fileWatcher.onDidCreate(uri => {
+            serviceManager.refreshServiceForFile(uri);
+            if (vscode.window.activeTextEditor) {
+                statusBarManager.updateStatusBar(vscode.window.activeTextEditor);
+            }
+        });
+
+        fileWatcher.onDidDelete(uri => {
+            serviceManager.refreshServiceForFile(uri);
+            if (vscode.window.activeTextEditor) {
+                statusBarManager.updateStatusBar(vscode.window.activeTextEditor);
+            }
+        });
+
+        fileWatchers.push(fileWatcher);
+        context.subscriptions.push(fileWatcher);
+    }
+}
+
+function disposeFileWatchers(): void {
+    for (const watcher of fileWatchers) {
+        watcher.dispose();
+    }
+    fileWatchers = [];
 }
 
 export function deactivate() {

@@ -1,11 +1,13 @@
 import * as vscode from 'vscode';
-import { CodeOwnerService, FileCodeOwnerStateType } from './codeOwnerService';
+import { t } from './localization';
+import { CodeOwnerServiceManager } from './codeOwnerServiceManager';
+import { FileCodeOwnerStateType } from './codeOwnerService';
 import { CodeOwnerRule } from './codeOwnerRule';
 import * as fs from 'fs';
 
 export class CodeownerCommands {
     constructor(
-        private codeOwnerService: CodeOwnerService,
+        private serviceManager: CodeOwnerServiceManager,
         private context: vscode.ExtensionContext
     ) {}
 
@@ -15,10 +17,15 @@ export class CodeownerCommands {
             return;
         }
 
-        const fileState = this.codeOwnerService.getFileCodeOwnerState(editor.document.uri);
+        const service = this.serviceManager.getServiceForFile(editor.document.uri);
+        if (!service) {
+            return;
+        }
+
+        const fileState = service.getFileCodeOwnerState(editor.document.uri);
 
         if (fileState.type !== FileCodeOwnerStateType.RuleFoundInCodeOwnerFile || !fileState.codeOwnerRule) {
-            vscode.window.showInformationMessage('No codeowner rule found for this file');
+            vscode.window.showInformationMessage(t('No codeowners found'));
             return;
         }
 
@@ -26,25 +33,25 @@ export class CodeownerCommands {
         const owners = rule.owners;
 
         if (owners.length === 1) {
-            await this.navigateToCodeownerRule(rule, owners[0]);
+            await this.navigateToCodeownerRule(service, rule, owners[0]);
         } else {
             const selectedOwner = await vscode.window.showQuickPick(owners, {
                 placeHolder: 'Select a codeowner to navigate to the rule'
             });
 
             if (selectedOwner) {
-                await this.navigateToCodeownerRule(rule, selectedOwner);
+                await this.navigateToCodeownerRule(service, rule, selectedOwner);
             }
         }
     }
 
-    private async navigateToCodeownerRule(rule: CodeOwnerRule, ownerLabel: string): Promise<void> {
-        const codeOwnerFile = this.codeOwnerService.getCodeOwnerFile();
+    private async navigateToCodeownerRule(service: any, rule: CodeOwnerRule, ownerLabel: string): Promise<void> {
+        const codeOwnerFile = service.getCodeOwnerFile();
         if (!codeOwnerFile) {
             return;
         }
 
-        const trueOwner = this.codeOwnerService.getTrueCodeOwner(ownerLabel);
+        const trueOwner = service.getTrueCodeOwner(ownerLabel);
         const columnIndex = this.getColumnIndexForCodeOwner(codeOwnerFile, rule.lineNumber, trueOwner);
 
         const document = await vscode.workspace.openTextDocument(codeOwnerFile);
@@ -110,41 +117,44 @@ export class CodeownerCommands {
         ];
 
         if (changes.length === 0) {
-            vscode.window.showInformationMessage('No modified files in the current changelist');
+            vscode.window.showInformationMessage(t('No files modified.'));
             return;
-        }
-
-        // Check if CODEOWNERS file exists
-        const codeOwnerFile = this.codeOwnerService.getCodeOwnerFile();
-        if (!codeOwnerFile) {
-            vscode.window.showWarningMessage('No CODEOWNERS file found in the repository');
         }
 
         // Group files by codeowners
         const codeownerMap = new Map<string, vscode.Uri[]>();
+        let hasCodeOwnersFile = false;
 
         for (const change of changes) {
             if (!change.uri) {
                 continue;
             }
 
-            const fileState = this.codeOwnerService.getFileCodeOwnerState(change.uri);
+            const service = this.serviceManager.getServiceForFile(change.uri);
+            if (service) {
+                hasCodeOwnersFile = true;
+                const fileState = service.getFileCodeOwnerState(change.uri);
 
-            if (fileState.type === FileCodeOwnerStateType.RuleFoundInCodeOwnerFile && fileState.codeOwnerRule) {
-                const owners = fileState.codeOwnerRule.owners;
-                const key = owners.length > 0 ? owners.join(', ') : 'Unknown';
+                if (fileState.type === FileCodeOwnerStateType.RuleFoundInCodeOwnerFile && fileState.codeOwnerRule) {
+                    const owners = fileState.codeOwnerRule.owners;
+                    const key = owners.length > 0 ? owners.join(', ') : '¯\\_(ツ)_/¯';
 
-                if (!codeownerMap.has(key)) {
-                    codeownerMap.set(key, []);
+                    if (!codeownerMap.has(key)) {
+                        codeownerMap.set(key, []);
+                    }
+                    codeownerMap.get(key)?.push(change.uri);
+                } else {
+                    const key = '¯\\_(ツ)_/¯';
+                    if (!codeownerMap.has(key)) {
+                        codeownerMap.set(key, []);
+                    }
+                    codeownerMap.get(key)?.push(change.uri);
                 }
-                codeownerMap.get(key)?.push(change.uri);
-            } else {
-                const key = 'Unknown';
-                if (!codeownerMap.has(key)) {
-                    codeownerMap.set(key, []);
-                }
-                codeownerMap.get(key)?.push(change.uri);
             }
+        }
+
+        if (!hasCodeOwnersFile) {
+            vscode.window.showWarningMessage(t('No CODEOWNERS file found.'));
         }
 
         // Check if CODEOWNERS file was edited
@@ -153,7 +163,7 @@ export class CodeownerCommands {
         );
 
         if (codeownerFileEdited) {
-            vscode.window.showWarningMessage('CODEOWNERS file has been edited in this changelist');
+            vscode.window.showWarningMessage(t('CODEOWNERS file is edited.'));
         }
 
         // Create quick pick items
@@ -168,7 +178,7 @@ export class CodeownerCommands {
         }
 
         const selected = await vscode.window.showQuickPick(items, {
-            placeHolder: 'Codeowners for changed files',
+            placeHolder: t('All codeowners'),
             canPickMany: false
         });
 
@@ -195,7 +205,7 @@ export class CodeownerCommands {
     }
 
     public refreshCodeowners(): void {
-        this.codeOwnerService.refreshCodeOwnerRules();
+        this.serviceManager.refreshAllServices();
         vscode.window.showInformationMessage('Codeowners refreshed');
     }
 }
