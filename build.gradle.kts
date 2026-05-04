@@ -40,12 +40,11 @@ intellijPlatform {
     projectName = project.name
 
     group = "com.wquasar"
-    version = "0.6.8"
+    version = "0.6.9"
 
     pluginConfiguration {
         ideaVersion {
             sinceBuild = libs.versions.sinceBuild.get()
-            untilBuild = libs.versions.untilBuild.get()
         }
     }
 
