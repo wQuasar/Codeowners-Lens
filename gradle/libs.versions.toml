@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.1.21"
-intellij = "2.0.1"
+intellij = "2.6.0"
 sinceBuild = "231"
 intellijPlugin = "2024.1.5"
 dagger = "2.10"
